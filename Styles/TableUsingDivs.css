@@ -1,0 +1,91 @@
+table {
+    border:             2px solid black;
+    width:              35%;
+}
+
+th, td {
+    border:             1px solid blue;
+}
+
+thead {
+    background-color:   #99dedf;
+    font-weight:        bold;
+}
+
+tfoot {
+    background-color:   #ccff99;
+    font-weight:        lighter;
+}
+
+.rTable {
+    border:             2px solid black;
+    display:            table;
+    width:              35%;
+    vertical-align:     middle;
+}
+
+.rTableForm {
+    display:            table;
+    vertical-align:     middle;
+}
+
+.rTableRow {
+    display:            table-row;
+    vertical-align:	middle;
+}
+
+.rTableRowForm {
+    display:            table-row;
+    vertical-align:		middle;
+}
+
+.rTableHead {
+    display:            table-header-group;
+    font-weight:        bold;
+    background-color:   #99dedf;
+    vertical-align:	middle;
+}
+
+.rTableHeadForm {
+    display:            table-header-group;
+    font-weight:        bold;
+    background-color:   #99dedf;
+    vertical-align:	middle;
+}
+
+.rTableFoot {
+    display:            table-footer-group;
+    font-weight:        lighter;
+    background-color:   #ccff99;
+    vertical-align:	middle;	
+}
+
+.rTableFootForm {
+    display:            table-footer-group;
+    font-weight:        lighter;
+    background-color:   #ccff99;
+    vertical-align:     middle;
+}
+
+.rTableCell, .rTableHead, .rTableFoot {
+    display:            table-cell;
+    padding:            3px 10px;
+    border:             1px solid blue;
+    vertical-align:     middle;
+}
+
+.rTableCellForm, .rTableHeadForm, .rTableFootForm {
+    display:            table-cell;
+    padding:            3px 10px;
+    vertical-align:	middle;
+}
+
+.rTableBody {
+    display:            table-row-group;
+    vertical-align:	middle;
+}
+
+.rTableBodyForm {
+    display:            table-row-group;
+    vertical-align:	middle;
+}

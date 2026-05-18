@@ -1,0 +1,101 @@
+body {
+    background-color: #fffaf0;
+}
+
+h1 {
+    font-family:      "lucida calligraphy", arial, 'sans serif'; 
+    color:            blueviolet;
+    text-align:       center;
+}
+
+h2 {
+    font-family:      "lucida calligraphy", arial, 'sans serif'; 
+    color:            blue;
+    text-align:       center;
+}
+
+.captcha-container {
+    text-align: left;
+    margin-bottom: 15px; /* Adds a little space before the submit button */
+}
+
+.mainPageEntry {
+    font-size:      larger;
+}
+
+
+table.phd {
+    width:            80%;
+    margin-left:      auto;
+    margin-right:     auto;
+}
+
+td.phd {
+    border-bottom:    2px solid;
+}
+
+th.frequency {
+    border-top:       4px solid;
+    border-bottom:    2px solid;
+    width:            20%;
+}
+
+th.localMaxs {
+    border-top:       4px solid;
+    border-bottom:    2px solid;
+    width:            20%;
+}
+
+th.ngram {
+    border-top:       4px solid;
+    border-bottom:    2px solid;
+    width:            80%;
+}
+
+th.phd {
+    border-top:       4px solid;
+    border-bottom:    2px solid;
+}
+
+img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media only screen and (max-width: 600px) {
+    img.bigScreen {
+        display: none;
+    }
+
+    img.smallScreen {
+        display: block;
+    }
+   
+    div.bigScreen {
+        display: none;
+    }
+}
+
+@media only screen and (min-width: 601px) {
+    img.bigScreen {
+        display: block;
+   }
+
+    img.smallScreen {
+        display: none;
+   }
+}
+
+.visitorContainer {
+    margin-left: auto;
+    margin-right: auto;
+    width: 30%;
+}
+
+.visitorText {
+    float:  left;
+}
+
+.visitorIcon {
+}
