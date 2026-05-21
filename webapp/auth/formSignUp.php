@@ -88,6 +88,13 @@ loadConfigurationDataBase(constant("ConfigFile"));
             <p>Fields with * are required</p>
             <input type="submit" value="Sign-up"> <input type="reset" value="Clear">
         </form>
-        <a href="../index.php">Back</a>
+        <a href="../index.php">Home</a> <br>
+        <!--
+        Source - https://stackoverflow.com/a/8814534
+        Posted by Bajrang, modified by community. See post 'Timeline' for change history
+        Retrieved 2026-05-21, License - CC BY-SA 3.0
+        -->
+
+        <a href="javascript:history.back()">Go Back</a>
     </body>
 </html>

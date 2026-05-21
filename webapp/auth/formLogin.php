@@ -10,6 +10,16 @@
     $serverPort = 80;
 
     $name = webAppName();
+    
+if ( !isset( $_SESSION ) ) {
+    session_start();
+}
+$isLoggedIn = isset($_SESSION['id']);
+if($isLoggedIn){
+header("Location: ../index.php");    
+exit();
+}
+
 
     //$nextUrl = "https://" . $serverName . ":" . $serverPortSSL . $name . "processFormLogin.php";
     //#$nextUrl = "http://" . $serverName . ":" . $serverPort . $name . "processFormLogin.php";
@@ -64,6 +74,14 @@
 
             <input type="submit" value="Login"> <input type="reset" value="Clear">
         </form>
-        <a href="formSignUp.php">Sign-Up</a>
+        <a href="formSignUp.php">Sign-Up</a> <br>
+        <a href="../index.php">Home</a> <br>
+        <!--
+        Source - https://stackoverflow.com/a/8814534
+        Posted by Bajrang, modified by community. See post 'Timeline' for change history
+        Retrieved 2026-05-21, License - CC BY-SA 3.0
+        -->
+
+        <a href="javascript:history.back()">Go Back</a>
     </body>
 </html>

@@ -40,7 +40,7 @@
             $baseNextUrl = $baseUrl;
             $nextUrl = $_SESSION['locationAfterAuth'];
         } else {
-            $nextUrl = "pag_1.php";
+            $nextUrl = "../index.php";
         }
     } else {
         $nextUrl = "formLogin.php";
