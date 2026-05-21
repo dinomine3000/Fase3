@@ -53,25 +53,33 @@
   border: 1px solid var(--border);
   border-radius: 9px; overflow: hidden;
   display: flex; align-items: stretch; text-decoration: none;
-  transition: border-color .15s, box-shadow .15s, background .25s;
-  min-height: 120px;
-  background-image: var(--subcat-banner-image, none);
+  transition: border-color .15s, box-shadow .2s, transform .2s, background-image .2s;
+  min-height: 170px;
+  background-image: linear-gradient(rgba(0,0,0,0.45), rgba(0,0,0,0.45)),
+                    var(--subcat-banner-image, none);
   background-size: cover; background-position: center;
 }
 
-.subcat-banner:hover { border-color: var(--border2); box-shadow: 0 2px 10px var(--shadow); }
+.subcat-banner:hover {
+  border-color: var(--border2);
+  box-shadow: 0 8px 24px var(--shadow);
+  transform: translateY(-3px);
+  background-image: linear-gradient(rgba(0,0,0,0.30), rgba(0,0,0,0.30)),
+                    var(--subcat-banner-image, none);
+}
 
 .subcat-banner-body {
   flex: 1; min-width: 0; padding: 0.75rem 1rem;
-  display: flex; flex-direction: column; justify-content: center;
+  display: flex; flex-direction: column; justify-content: end;
 }
 .subcat-banner-title {
-  font-size: 14px; font-weight: 600; color: var(--text);
-  transition: color .25s;
+  font-size: 20px; font-weight: 600; color: #fff;
+  /* text-shadow: 0 1px 6px rgba(0,0,0,0.6); */
 }
 .subcat-banner-desc {
-  font-size: 12px; color: var(--muted); margin-top: 2px;
-  transition: color .25s;
+  font-size: 14px; color: rgba(255,255,255,0.80); margin-top: 2px;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.55);
+  margin-left: 0.4rem;
 }
 
 .subcat-banner-meta {
