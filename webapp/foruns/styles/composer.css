@@ -1,0 +1,129 @@
+/* ==========================================================================
+   styles/composer.css  —  Compositor de nova discussão (slide-up)
+   ========================================================================== */
+
+/* Overlay */
+.composer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.38);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.24s;
+}
+.composer-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Painel */
+.forum-composer {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) translateY(108%);
+    width: 100%;
+    max-width: 660px;
+    background: #fff;
+    box-shadow: 0 -6px 30px rgba(0,0,0,0.16);
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+}
+.forum-composer.active {
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Cabeçalho */
+.composer-header {
+    background: #1e2d45;
+    color: #fff;
+    padding: 13px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top-left-radius: 14px;
+    border-top-right-radius: 14px;
+}
+.composer-title-label {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 0.98rem;
+    font-weight: 600;
+}
+.btn-close-composer {
+    background: none;
+    border: none;
+    color: #9ab3cc;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+    padding: 3px 7px;
+    border-radius: 4px;
+    transition: color 0.14s;
+}
+.btn-close-composer:hover { color: #fff; }
+
+/* Corpo */
+.composer-body {
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+}
+.composer-body input[type="text"],
+.composer-body textarea {
+    width: 100%;
+    border: 1px solid #dde2ea;
+    border-radius: 7px;
+    padding: 9px 13px;
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 0.9rem;
+    color: #2c2c2c;
+    outline: none;
+    transition: border-color 0.14s, box-shadow 0.14s;
+    resize: none;
+}
+.composer-body input[type="text"]:focus,
+.composer-body textarea:focus {
+    border-color: #3a6cb7;
+    box-shadow: 0 0 0 3px rgba(58,108,183,.09);
+}
+.composer-body textarea { min-height: 105px; }
+
+.composer-categories {
+    display: flex;
+    gap: 10px;
+}
+.composer-categories select {
+    flex: 1;
+    padding: 8px 11px;
+    border: 1px solid #dde2ea;
+    border-radius: 7px;
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    font-size: 0.87rem;
+    color: #2c2c2c;
+    background: #fff;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.14s;
+}
+.composer-categories select:focus { border-color: #3a6cb7; }
+
+/* Rodapé */
+.composer-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 9px;
+    padding: 0 20px 18px;
+}
+
+/* Responsivo */
+@media (max-width: 700px) {
+    .forum-composer        { max-width: 100%; border-radius: 0; }
+    .composer-categories   { flex-direction: column; }
+}
