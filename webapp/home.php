@@ -28,10 +28,14 @@ $isLoggedIn = isset($_SESSION['id']);
     }
     ?>
 
+    <?php 
+    if(isset($name) && authorizeUserByLevel($name, "organizer")):
+    ?>
     <form action="wiki/create.php" method="GET">
         <button type="submit">Create a Page</button>
     </form>
     <br>
+    <?php endif; ?>
 
     <form action="wiki/viewPage.php" method="GET">
         <button type="submit">View Categories</button>

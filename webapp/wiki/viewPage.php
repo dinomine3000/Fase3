@@ -1,7 +1,9 @@
 <?php 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 include_once("../../Lib/lib.php");
-include_once("../../Lib/parsedown/Parsedown.php");
-
+include_once("../../Lib/extendedParsedown.php");
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method == 'POST') {
@@ -15,6 +17,9 @@ if ($method == 'POST') {
     exit();
 }
 
+if ( !isset( $_SESSION ) ) {
+    session_start();
+}
 $title     = filter_input($_INPUT_METHOD, 'pageTitle', FILTER_UNSAFE_RAW);
 $secondary = filter_input($_INPUT_METHOD, 'secondaryCategory', FILTER_UNSAFE_RAW);
 $primary   = filter_input($_INPUT_METHOD, 'primaryCategory', FILTER_UNSAFE_RAW);
@@ -33,13 +38,18 @@ $primary   = filter_input($_INPUT_METHOD, 'primaryCategory', FILTER_UNSAFE_RAW);
     if (!empty($title)): 
         $content = readWikiPage($title);
         $meta = getPageMetaData($title);
-        $Parsedown = new Parsedown();
+        $Parsedown = new ExtendedParsedown();
     ?>
+    <!-- Back button extracts parent components from DB, keeping the current URL clean -->
         <?php if ($meta): ?>
-            <!-- Back button extracts parent components from DB, keeping the current URL clean -->
             <a href="?primaryCategory=<?php echo $meta['primaryCategory']; ?>&secondaryCategory=<?php echo $meta['secondaryCategory']; ?>">← Back to <?php echo $meta['secondaryCategory']; ?></a>
         <?php else: ?>
             <a href="?">← Back Home</a>
+        <?php endif; ?>
+        <!-- edit button -->
+        <?php if (isset($_SESSION['username']) && authorizeUserByLevel($_SESSION['username'], 'user')): ?>
+            <br>
+            <a href="editPage.php?pageTitle=<?php echo $title ?>"> Edit Page</a>
         <?php endif; ?>
 
         <article>

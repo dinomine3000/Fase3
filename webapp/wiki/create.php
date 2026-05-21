@@ -1,5 +1,13 @@
 <?php 
 include_once("../../Lib/lib.php");
+
+if ( !isset( $_SESSION ) ) {
+    session_start();
+}
+if(!isset($_SESSION['username']) || !authorizeUserByLevel($_SESSION['username'], "organizer")){
+header("Location: ../index.php");    
+exit();
+}
 $primaryCategories = getCategoryList('primary');
 ?>
 <!DOCTYPE html>

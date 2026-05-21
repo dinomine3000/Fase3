@@ -47,7 +47,7 @@ function getBaseUrl(){
  * @param string $roleName The friendly name of the role (e.g., 'manager', 'user').
  * @return bool True if the user has the role, false otherwise.
  */
-function userHasRole($conn, $userId, $roleName) {
+function userHasRole($conn, $userId, $roleName): Bool {
     // Backticks ` are required because your table names contain hyphens (-)
     $sql = "SELECT COUNT(*) 
             FROM `auth-permissions` p
@@ -708,7 +708,7 @@ function authorizeUserByLevel($username, $requiredRoleName) {
     $requiredRoleName = mysqli_real_escape_string($GLOBALS['ligacao'], $requiredRoleName);
 
     // 1. Get the level of the required role from the DB
-    $reqQuery = "SELECT `level` FROM `$dataBaseName`.`auth-roles` WHERE `friendlyName` = '$requiredRoleName' LIMIT 1";
+    $reqQuery = "SELECT `roleLevel` FROM `$dataBaseName`.`auth-roles` WHERE `friendlyName` = '$requiredRoleName' LIMIT 1";
     $reqResult = mysqli_query($GLOBALS['ligacao'], $reqQuery);
     
     if (!$reqResult || mysqli_num_rows($reqResult) === 0) {
@@ -717,14 +717,14 @@ function authorizeUserByLevel($username, $requiredRoleName) {
         return false; 
     }
     $reqRow = mysqli_fetch_assoc($reqResult);
-    $requiredLevel = (int)$reqRow['level'];
+    $requiredLevel = (int)$reqRow['roleLevel'];
     mysqli_free_result($reqResult);
 
     // 2 & 3. Get the user's role and JOIN to resolve their actual level from the DB
-    $userQuery = "SELECT r.`level` 
+    $userQuery = "SELECT r.`roleLevel` 
                   FROM `$dataBaseName`.`auth-basic` u
                   JOIN `$dataBaseName`.`auth-roles` r ON u.`idRole` = r.`idRole`
-                  WHERE u.`name` = '$username' 
+                  WHERE u.`name` = '$username'
                   LIMIT 1";
                   
     $userResult = mysqli_query($GLOBALS['ligacao'], $userQuery);
@@ -732,7 +732,7 @@ function authorizeUserByLevel($username, $requiredRoleName) {
     $userLevel = 0; // Baseline fallback level (unauthenticated/lowest possible)
     if ($userResult && mysqli_num_rows($userResult) > 0) {
         $userRow = mysqli_fetch_assoc($userResult);
-        $userLevel = (int)$userRow['level'];
+        $userLevel = (int)$userRow['roleLevel'];
         mysqli_free_result($userResult);
     }
 
@@ -764,5 +764,60 @@ function getUserRoleFriendlyName($username) {
 
     dbDisconnect();
     return $friendlyName;
+}
+function processPageChange($username, $pageTitle, $newContent) {
+    // 1. Check role authorization level using your existing function
+    $isEditorOrHigher = authorizeUserByLevel($username, 'editor');
+
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    // Sanitize values for queries
+    $username   = mysqli_real_escape_string($GLOBALS['ligacao'], $username);
+    $pageTitle  = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
+    $newContent = mysqli_real_escape_string($GLOBALS['ligacao'], $newContent);
+
+    // 2. Fetch user metadata needed for contributions score and fallback tracking
+    $userQuery = "SELECT `idUser`, `contributions` 
+                  FROM `$dataBaseName`.`auth-basic` 
+                  WHERE `name` = '$username' 
+                  LIMIT 1";
+
+    $userResult = mysqli_query($GLOBALS['ligacao'], $userQuery);
+    
+    if (!$userResult || mysqli_num_rows($userResult) === 0) {
+        if ($userResult) mysqli_free_result($userResult);
+        dbDisconnect();
+        return false; // User not found
+    }
+
+    $userData      = mysqli_fetch_assoc($userResult);
+    $idUser        = (int)$userData['idUser'];
+    $contributions = (int)$userData['contributions'];
+    mysqli_free_result($userResult);
+
+    $hasHighContributions = ($contributions > 3);
+
+    // 3. Routing decision logic
+    if ($isEditorOrHigher || $hasHighContributions) {
+        // Direct Apply: Update live production document text immediately
+        $updateQuery = "UPDATE `$dataBaseName`.`page` 
+                        SET `content` = '$newContent' 
+                        WHERE `pageTitle` = '$pageTitle'";
+        $success = mysqli_query($GLOBALS['ligacao'], $updateQuery);
+        
+        if ($success) {
+            mysqli_query($GLOBALS['ligacao'], "UPDATE `$dataBaseName`.`auth-basic` SET `contributions` = `contributions` + 1 WHERE `idUser` = $idUser");
+        }
+    } else {
+        // Sandbox Review: Write proposal safely into queue moderation backlog log files
+        $insertQuery = "INSERT INTO `$dataBaseName`.`page-changes` (`pageTitle`, `editorId`, `newContent`) 
+                        VALUES ('$pageTitle', $idUser, '$newContent')";
+        $success = mysqli_query($GLOBALS['ligacao'], $insertQuery);
+    }
+
+    dbDisconnect();
+    return $success;
 }
 ?>
