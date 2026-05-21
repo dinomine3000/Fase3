@@ -1,0 +1,52 @@
+/* ── CATEGORY HERO ── */
+.cat-hero {
+  border-bottom: 1px solid var(--border);
+  transition: background .25s, border-color .25s;
+  padding: 1.25rem 0;
+}
+.cat-hero.s1 { background: var(--cat-s1); }
+.cat-hero.s2 { background: var(--cat-s2); }
+.cat-hero.s3 { background: var(--cat-s3); }
+.cat-hero.s4 { background: var(--cat-s4); }
+.cat-hero.s5 { background: var(--cat-s5); }
+
+.cat-hero-inner {
+  display: flex; align-items: center; gap: 1rem;
+}
+
+.cat-hero-back {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 7px;
+  border: 1px solid var(--border); background: none; color: var(--muted);
+  flex-shrink: 0; text-decoration: none;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.cat-hero-back:hover { border-color: var(--border2); color: var(--text); background: var(--bg2); }
+.cat-hero-back svg { width: 14px; height: 14px; }
+
+.cat-hero-name {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 20px; font-weight: 600; color: var(--text);
+  transition: color .25s;
+}
+.cat-hero-count {
+  font-family: 'Outfit', sans-serif; font-size: 11px; color: var(--faint);
+  margin-top: 1px;
+  transition: color .25s;
+}
+
+.cat-hero-edit { margin-left: auto; }
+
+/* ── SUBCATEGORY CHIPS ── */
+.subcat-row {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.subcat-chip {
+  height: 28px; padding: 0 12px; border-radius: 6px;
+  border: 1px solid var(--border); background: none; color: var(--muted);
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 500;
+  cursor: pointer; display: inline-flex; align-items: center;
+  transition: all .15s; white-space: nowrap;
+}
+.subcat-chip:hover { border-color: var(--border2); color: var(--text); background: var(--bg3); }
+.subcat-chip.active { border-color: var(--accent); color: var(--accent); background: none; }
