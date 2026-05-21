@@ -9,11 +9,11 @@
 $category = ['id'=>'physics', 'name'=>'Physics', 'count'=>103, 'shade'=>'s5'];
 
 $subcategories = [
-  ['id'=>'classical',  'name'=>'Classical Mechanics'],
-  ['id'=>'quantum',    'name'=>'Quantum Mechanics'  ],
-  ['id'=>'relativity', 'name'=>'Relativity'         ],
-  ['id'=>'optics',     'name'=>'Optics'             ],
-  ['id'=>'thermo',     'name'=>'Thermodynamics'     ],
+  ['id'=>'classical',  'name'=>'Classical Mechanics', 'count'=>24, 'image'=>null, 'description'=>'Motion, forces, and energy in macroscopic systems.'],
+  ['id'=>'quantum',    'name'=>'Quantum Mechanics',   'count'=>31, 'image'=>null, 'description'=>'Probabilistic behaviour of particles at the smallest scales.'],
+  ['id'=>'relativity', 'name'=>'Relativity',          'count'=>18, 'image'=>null, 'description'=>'How space, time, and gravity are linked at all scales.'],
+  ['id'=>'optics',     'name'=>'Optics',              'count'=>12, 'image'=>null, 'description'=>'The behaviour and properties of light and its interactions.'],
+  ['id'=>'thermo',     'name'=>'Thermodynamics',      'count'=>18, 'image'=>null, 'description'=>'Heat, energy transfer, and the laws governing them.'],
 ];
 
 $articles = [
@@ -75,10 +75,6 @@ $articles = [
         <div class="cat-hero-name"><?php echo htmlspecialchars($category['name']); ?></div>
         <div class="cat-hero-count"><?php echo (int)$category['count']; ?> articles</div>
       </div>
-      <a href="article-editor.php" class="hbtn cat-hero-edit">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        New article
-      </a>
     </div>
   </div>
 </div>
@@ -86,9 +82,6 @@ $articles = [
 <div class="container-lg py-4">
   <!-- Subcategory chips -->
   <div class="subcat-row" id="subcatRow"></div>
-
-  <div class="section-heading mt-3">Articles</div>
-  <div class="d-flex flex-column gap-1" id="articleList"></div>
 </div>
 
 <script>

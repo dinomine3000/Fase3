@@ -8,26 +8,6 @@ function toggleTheme() {
 /* ── STATE ── */
 let searchTerm = '';
 
-/* ── RENDER SUBCATEGORY BANNERS ── */
-function renderSubcats() {
-  const wrap = document.getElementById('subcatRow');
-  if (!subcategories.length) { wrap.style.display = 'none'; return; }
-  wrap.className = 'subcat-banners';
-  wrap.innerHTML = subcategories.map(s => `
-    <a class="subcat-banner" href="subcategory.php?id=${s.id}">
-      <div class="subcat-banner-img">
-        ${s.image
-          ? `<img src="${s.image}" alt="">`
-          : `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg>`}
-      </div>
-      <div class="subcat-banner-body">
-        <div class="subcat-banner-title">${s.name}</div>
-        <div class="subcat-banner-desc">${s.description || ''}</div>
-      </div>
-      <div class="subcat-banner-meta">${s.count} articles</div>
-    </a>`).join('');
-}
-
 /* ── RENDER ARTICLES ── */
 function renderArticles() {
   let list = articles;
@@ -52,5 +32,4 @@ function renderArticles() {
 
 function filterArticles(val) { searchTerm = val.toLowerCase(); renderArticles(); }
 
-renderSubcats();
 renderArticles();
