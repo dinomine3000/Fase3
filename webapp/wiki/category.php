@@ -46,7 +46,7 @@ $articles = [
       <a class="logo" href="wiki.php">Portal <span class="logo-wiki">Wiki</span></a>
       <div class="search-wrap flex-grow-1">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="searchInput" placeholder="Search in category…" oninput="filterArticles(this.value)">
+        <input type="text" id="searchInput" placeholder="Search in category…" oninput="filterArticles(this.value)" onkeydown="if(event.key==='Enter'&&this.value.trim())location.href='search.php?q='+encodeURIComponent(this.value.trim())">
       </div>
       <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>

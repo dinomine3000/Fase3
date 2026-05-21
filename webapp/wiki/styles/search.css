@@ -1,0 +1,62 @@
+/* ── SEARCH PAGE BAR ── */
+.search-page-wrap {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 9px; padding: 0 14px; height: 48px;
+  margin-bottom: 1.5rem;
+  transition: border-color .2s, background .25s;
+}
+.search-page-wrap:focus-within { border-color: var(--accent); }
+.search-page-wrap svg { color: var(--faint); flex-shrink: 0; }
+.search-page-wrap input {
+  background: none; border: none; outline: none;
+  color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px; flex: 1; min-width: 0;
+}
+.search-page-wrap input::placeholder { color: var(--faint); }
+
+.search-clear {
+  background: none; border: none; padding: 4px; cursor: pointer;
+  color: var(--faint); display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 4px; flex-shrink: 0; transition: color .15s;
+}
+.search-clear:hover { color: var(--text); }
+.search-clear svg { width: 14px; height: 14px; }
+
+/* ── SUMMARY LINE ── */
+.search-summary {
+  font-size: 13px; color: var(--muted); margin-bottom: 1.5rem;
+}
+
+/* ── RESULT COUNT IN HEADING ── */
+.res-count {
+  font-family: 'Outfit', sans-serif; font-size: 11px; font-weight: 400;
+  color: var(--faint); margin-left: 0.4rem;
+}
+
+/* ── RESULT BAR (link variant of article-bar) ── */
+.result-bar {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.8rem 1rem;
+  display: flex; align-items: baseline; gap: 1rem;
+  text-decoration: none; color: inherit;
+  transition: border-color .15s, box-shadow .15s, background .25s;
+}
+.result-bar:hover { border-color: var(--border2); box-shadow: 0 2px 8px var(--shadow); color: inherit; }
+
+/* ── NEUTRAL KIND CHIP (Category / Subcategory) ── */
+.res-chip {
+  font-family: 'Outfit', sans-serif; font-size: 10px; text-transform: uppercase;
+  color: var(--muted); background: var(--bg3);
+  border: 1px solid var(--border); border-radius: 4px; padding: 3px 7px;
+  white-space: nowrap; flex-shrink: 0; position: relative; top: -1px;
+}
+
+/* ── EMPTY STATE ── */
+.search-empty {
+  padding: 4rem 0; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 0.75rem;
+}
+.search-empty svg { width: 36px; height: 36px; color: var(--faint); }
+.search-empty-title { font-size: 15px; font-weight: 500; color: var(--muted); }
+.search-empty-sub { font-family: 'Outfit', sans-serif; font-size: 12px; color: var(--faint); }
