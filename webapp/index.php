@@ -1,3 +1,3 @@
 <?php 
-header("Location: ./auth/formLogin.php")
+header("Location: ./home.php")
 ?>

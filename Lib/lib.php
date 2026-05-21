@@ -39,6 +39,45 @@ function getBaseUrl(){
     return $baseUrl;
 }
 
+/**
+ * Checks if a specific user has a given role.
+ * 
+ * @param mysqli $conn     The active database connection variable.
+ * @param int    $userId   The ID of the user to check.
+ * @param string $roleName The friendly name of the role (e.g., 'manager', 'user').
+ * @return bool True if the user has the role, false otherwise.
+ */
+function userHasRole($conn, $userId, $roleName) {
+    // Backticks ` are required because your table names contain hyphens (-)
+    $sql = "SELECT COUNT(*) 
+            FROM `auth-permissions` p
+            JOIN `auth-roles` r ON p.idRole = r.idRole
+            WHERE p.idUser = ? AND r.friendlyName = ?";
+
+    // Prepare the SQL statement
+    $stmt = mysqli_prepare($conn, $sql);
+    
+    if ($stmt) {
+        // "is" means: 1st parameter is an Integer ($userId), 2nd is a String ($roleName)
+        mysqli_stmt_bind_param($stmt, "is", $userId, $roleName);
+        
+        // Run the query
+        mysqli_stmt_execute($stmt);
+        
+        // Bind the result count to a variable
+        mysqli_stmt_bind_result($stmt, $count);
+        mysqli_stmt_fetch($stmt);
+        
+        // Close the statement
+        mysqli_stmt_close($stmt);
+        
+        // If the count is greater than 0, they have the role!
+        return $count > 0;
+    }
+    
+    return false;
+}
+
 function redirectToPage($url, $title, $message, $refreshTime = 5) {
     echo "<html>\n";
     echo "  <head>\n";
@@ -449,4 +488,281 @@ function getXdebugArgAsArray() {
   return null;
 }
 
+function getCategoryList($type, $filterPrimary = "") {
+    $categories = array();
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    if ($type === 'primary') {
+        $query = "SELECT `primaryCategory` FROM `$dataBaseName`.`category-primary` ORDER BY `primaryCategory` ASC";
+    } else {
+        // If a primary filter is provided, grab only subcategories belonging to it
+        if (!empty($filterPrimary)) {
+            $filterPrimary = mysqli_real_escape_string($GLOBALS['ligacao'], $filterPrimary);
+            $query = "SELECT `secondaryCategory` FROM `$dataBaseName`.`category-secondary` WHERE `primaryCategory`='$filterPrimary' ORDER BY `secondaryCategory` ASC";
+        } else {
+            $query = "SELECT * FROM `$dataBaseName`.`category-secondary` ORDER BY `primaryCategory`, `secondaryCategory` ASC";
+        }
+    }
+
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+
+    if ($result != false) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $categories[] = $row;
+        }
+        mysqli_free_result($result);
+    }
+
+    dbDisconnect();
+    return $categories;
+}
+function checkUserRole($idUser, $roleName) {
+    $hasRole = false;
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    // Sanitize values to safely match your legacy query design patterns
+    $idUser = (int)$idUser;
+    $roleName = mysqli_real_escape_string($GLOBALS['ligacao'], $roleName);
+
+    $query = "SELECT COUNT(*) as `total` 
+              FROM `$dataBaseName`.`auth-permissions` p
+              JOIN `$dataBaseName`.`auth-roles` r ON p.`idRole` = r.`idRole`
+              WHERE p.`idUser`='$idUser' AND r.`friendlyName`='$roleName'";
+
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+
+    if ($result != false) {
+        $data = mysqli_fetch_assoc($result);
+        if ($data['total'] > 0) {
+            $hasRole = true;
+        }
+        mysqli_free_result($result);
+    }
+
+    dbDisconnect();
+    return $hasRole;
+}
+
+function writeWikiPage($primaryCategory, $secondaryCategory, $pageTitle, $content) {
+    $success = false;
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $primaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryCategory);
+    $secondaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
+    $pageTitle = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
+    $content = mysqli_real_escape_string($GLOBALS['ligacao'], $content);
+
+    // Tries an insert first; updates content if the composite key already exists
+    $query = "INSERT INTO `$dataBaseName`.`page` (`primaryCategory`, `secondaryCategory`, `pageTitle`, `content`) 
+              VALUES ('$primaryCategory', '$secondaryCategory', '$pageTitle', '$content')
+              ON DUPLICATE KEY UPDATE `content`='$content'";
+
+    if (mysqli_query($GLOBALS['ligacao'], $query)) {
+        $success = true;
+    }
+
+    dbDisconnect();
+    return $success;
+}
+function readWikiPage($pageTitle) {
+    $pageData = null;
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    // Escape only the single key parameter
+    $pageTitle = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
+
+    $query = "SELECT `content` FROM `$dataBaseName`.`page` 
+              WHERE `pageTitle`='$pageTitle'";
+
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+
+    if ($result != false) {
+        $pageData = mysqli_fetch_assoc($result); 
+        mysqli_free_result($result);
+    }
+
+    dbDisconnect();
+    
+    // Guard against null if the page doesn't exist
+    return isset($pageData['content']) ? $pageData['content'] : null;
+}
+
+/**
+ * Summary of addCategory
+ * @param mixed $type string to indicate if youre adding a primary or secondary cat
+ * @param mixed $primaryName name of the primary category to create OR parent category to create second category under
+ * @param mixed $secondaryName name of secondary category if creating one, or null if youre just getting a primary one
+ * @return bool
+ */
+function addCategory($type, $primaryName, $secondaryName = "") {
+    $success = false;
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $primaryName = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryName);
+
+    if ($type === 'primary') {
+        $query = "INSERT INTO `$dataBaseName`.`category-primary` (`primaryCategory`) VALUES ('$primaryName')";
+    } else {
+        $secondaryName = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryName);
+        $query = "INSERT INTO `$dataBaseName`.`category-secondary` (`primaryCategory`, `secondaryCategory`) VALUES ('$primaryName', '$secondaryName')";
+    }
+
+    if (mysqli_query($GLOBALS['ligacao'], $query)) {
+        $success = true;
+    }
+
+    dbDisconnect();
+    return $success;
+}
+
+function removeWikiPage($primaryCategory, $secondaryCategory, $pageTitle) {
+    $success = false;
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $primaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryCategory);
+    $secondaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
+    $pageTitle = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
+
+    $query = "DELETE FROM `$dataBaseName`.`page` 
+              WHERE `primaryCategory`='$primaryCategory' 
+              AND `secondaryCategory`='$secondaryCategory' 
+              AND `pageTitle`='$pageTitle'";
+
+    if (mysqli_query($GLOBALS['ligacao'], $query)) {
+        $success = true;
+    }
+
+    dbDisconnect();
+    return $success;
+}
+
+
+// Helper function to get parent categories for a specific page title
+function getPageMetaData($pageTitle) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $pageTitle = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
+
+    $query = "SELECT `primaryCategory`, `secondaryCategory` FROM `$dataBaseName`.`page` 
+              WHERE `pageTitle`='$pageTitle'";
+
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+    $meta = null;
+
+    if ($result != false) {
+        $meta = mysqli_fetch_assoc($result);
+        mysqli_free_result($result);
+    }
+
+    dbDisconnect();
+    return $meta;
+}
+
+// Helper function to query page titles under a specific secondary category composite key
+function getPagesList($primaryCategory, $secondaryCategory) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $primaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryCategory);
+    $secondaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
+
+    $query = "SELECT `pageTitle` FROM `$dataBaseName`.`page` 
+              WHERE `primaryCategory`='$primaryCategory' 
+              AND `secondaryCategory`='$secondaryCategory' 
+              ORDER BY `pageTitle` ASC";
+
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+    $pages = array();
+
+    if ($result != false) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $pages[] = $row['pageTitle'];
+        }
+        mysqli_free_result($result);
+    }
+
+    dbDisconnect();
+    return $pages;
+}
+function authorizeUserByLevel($username, $requiredRoleName) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $username = mysqli_real_escape_string($GLOBALS['ligacao'], $username);
+    $requiredRoleName = mysqli_real_escape_string($GLOBALS['ligacao'], $requiredRoleName);
+
+    // 1. Get the level of the required role from the DB
+    $reqQuery = "SELECT `level` FROM `$dataBaseName`.`auth-roles` WHERE `friendlyName` = '$requiredRoleName' LIMIT 1";
+    $reqResult = mysqli_query($GLOBALS['ligacao'], $reqQuery);
+    
+    if (!$reqResult || mysqli_num_rows($reqResult) === 0) {
+        if ($reqResult) mysqli_free_result($reqResult);
+        dbDisconnect();
+        return false; 
+    }
+    $reqRow = mysqli_fetch_assoc($reqResult);
+    $requiredLevel = (int)$reqRow['level'];
+    mysqli_free_result($reqResult);
+
+    // 2 & 3. Get the user's role and JOIN to resolve their actual level from the DB
+    $userQuery = "SELECT r.`level` 
+                  FROM `$dataBaseName`.`auth-basic` u
+                  JOIN `$dataBaseName`.`auth-roles` r ON u.`idRole` = r.`idRole`
+                  WHERE u.`name` = '$username' 
+                  LIMIT 1";
+                  
+    $userResult = mysqli_query($GLOBALS['ligacao'], $userQuery);
+    
+    $userLevel = 0; // Baseline fallback level (unauthenticated/lowest possible)
+    if ($userResult && mysqli_num_rows($userResult) > 0) {
+        $userRow = mysqli_fetch_assoc($userResult);
+        $userLevel = (int)$userRow['level'];
+        mysqli_free_result($userResult);
+    }
+
+    dbDisconnect();
+
+    // Check if the user's level meets or exceeds the required level
+    return ($userLevel >= $requiredLevel);
+}
+function getUserRoleFriendlyName($username) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $username = mysqli_real_escape_string($GLOBALS['ligacao'], $username);
+
+    $query = "SELECT r.`friendlyName` 
+              FROM `$dataBaseName`.`auth-basic` u
+              JOIN `$dataBaseName`.`auth-roles` r ON u.`idRole` = r.`idRole`
+              WHERE u.`name` = '$username' 
+              LIMIT 1";
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+    $friendlyName = null;
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $friendlyName = $row['friendlyName'];
+        mysqli_free_result($result);
+    }
+
+    dbDisconnect();
+    return $friendlyName;
+}
 ?>
