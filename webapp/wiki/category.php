@@ -2,18 +2,18 @@
 // webapp/wiki/category.php
 
 // TODO: Replace the arrays below with your DB queries, e.g.:
-// $category      = $db->query("SELECT id, name, count, shade FROM categories WHERE id = ?", [$_GET['id']])->fetch();
+// $category      = $db->query("SELECT id, name, shade FROM categories WHERE id = ?", [$_GET['id']])->fetch();
 // $subcategories = $db->query("SELECT id, name FROM categories WHERE parent_id = ?", [$_GET['id']])->fetchAll();
 // $articles      = $db->query("SELECT tag, title, excerpt, created_at AS date, read_time AS `read`, subcat FROM articles WHERE cat = ?", [$_GET['id']])->fetchAll();
 
-$category = ['id'=>'physics', 'name'=>'Physics', 'count'=>103, 'shade'=>'s5'];
+$category = ['id'=>'physics', 'name'=>'Physics'];
 
 $subcategories = [
-  ['id'=>'classical',  'name'=>'Classical Mechanics', 'count'=>24, 'image'=>null, 'description'=>'Motion, forces, and energy in macroscopic systems.'],
-  ['id'=>'quantum',    'name'=>'Quantum Mechanics',   'count'=>31, 'image'=>null, 'description'=>'Probabilistic behaviour of particles at the smallest scales.'],
-  ['id'=>'relativity', 'name'=>'Relativity',          'count'=>18, 'image'=>null, 'description'=>'How space, time, and gravity are linked at all scales.'],
-  ['id'=>'optics',     'name'=>'Optics',              'count'=>12, 'image'=>null, 'description'=>'The behaviour and properties of light and its interactions.'],
-  ['id'=>'thermo',     'name'=>'Thermodynamics',      'count'=>18, 'image'=>null, 'description'=>'Heat, energy transfer, and the laws governing them.'],
+  ['id'=>'classical',  'name'=>'Classical Mechanics', 'image'=>'../img/davie.png', 'description'=>'Motion, forces, and energy in macroscopic systems.'],
+  ['id'=>'quantum',    'name'=>'Quantum Mechanics',   'image'=>'../img/davie.png', 'description'=>'Probabilistic behaviour of particles at the smallest scales.'],
+  ['id'=>'relativity', 'name'=>'Relativity',          'image'=>'../img/davie.png', 'description'=>'How space, time, and gravity are linked at all scales.'],
+  ['id'=>'optics',     'name'=>'Optics',              'image'=>'../img/davie.png', 'description'=>'The behaviour and properties of light and its interactions.'],
+  ['id'=>'thermo',     'name'=>'Thermodynamics',      'image'=>'../img/davie.png', 'description'=>'Heat, energy transfer, and the laws governing them.'],
 ];
 
 $articles = [
@@ -30,7 +30,7 @@ $articles = [
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title><?php echo htmlspecialchars($category['name']); ?> — Smiki</title>
+<title><?php echo htmlspecialchars($category['name']); ?> — Portal Wiki</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/wiki.css">
@@ -43,7 +43,7 @@ $articles = [
 <header class="site-header">
   <div class="container-lg py-0">
     <div class="d-flex align-items-center gap-3" style="height:56px">
-      <a class="logo" href="wiki.php">smiki</a>
+      <a class="logo" href="wiki.php">Portal <span class="logo-wiki">Wiki</span></a>
       <div class="search-wrap flex-grow-1">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="searchInput" placeholder="Search in category…" oninput="filterArticles(this.value)">
@@ -73,12 +73,10 @@ $articles = [
       </a>
       <div>
         <div class="cat-hero-name"><?php echo htmlspecialchars($category['name']); ?></div>
-        <div class="cat-hero-count"><?php echo (int)$category['count']; ?> articles</div>
       </div>
     </div>
   </div>
 </div>
-
 <div class="container-lg py-4">
   <!-- Subcategory chips -->
   <div class="subcat-row" id="subcatRow"></div>

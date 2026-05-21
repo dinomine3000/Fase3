@@ -17,6 +17,8 @@
   --cat-s4:  #ebeff0;
   --cat-s5:  #f0efeb;
   --cat-icon: #ccc;
+  --wiki-orange: #f97316;
+  --wiki-orange-2: #f4a768;
 }
 
 /* ── DARK THEME ── */
@@ -38,6 +40,8 @@
   --cat-s4:  #181a1c;
   --cat-s5:  #1a1c18;
   --cat-icon: #333;
+  --wiki-orange: #fb923c;
+  --wiki-orange-2: #fa7d17;
 }
 
 /* ── BASE ── */
@@ -62,6 +66,7 @@ body {
   color: var(--accent); text-decoration: none; letter-spacing: -0.01em;
 }
 .logo:hover { color: var(--accent2); }
+.logo-wiki { color: var(--wiki-orange-2); }
 
 .search-wrap {
   background: var(--bg3); border: 1px solid var(--border);
@@ -131,7 +136,7 @@ body {
 }
 .cat-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-.cat-body  { padding: 0.6rem 0.85rem; }
+.cat-body  { padding: 0.9rem 0.85rem; }
 .cat-label { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 1px; transition: color .25s; }
 .cat-count { font-family: 'Outfit', sans-serif; font-size: 10px; color: var(--faint); }
 

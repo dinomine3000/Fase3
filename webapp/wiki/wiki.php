@@ -2,20 +2,20 @@
 // webapp/wiki/wiki.php
 
 // TODO: Replace the arrays below with your DB queries, e.g.:
-// $categories = $db->query("SELECT id, name, count, shade FROM categories ORDER BY name")->fetchAll();
+// $categories = $db->query("SELECT id, name, shade FROM categories ORDER BY name")->fetchAll();
 // $articles   = $db->query("SELECT tag, title, excerpt, created_at AS date, read_time AS `read`, cat FROM articles ORDER BY created_at DESC")->fetchAll();
 
 $categories = [
-  ['id'=>'science',     'name'=>'Science',     'count'=>142, 'shade'=>'s1', 'img'=>'img/davie.png'],
-  ['id'=>'history',     'name'=>'History',     'count'=>98,  'shade'=>'s2', 'img'=>'img/davie.png'],
-  ['id'=>'technology',  'name'=>'Technology',  'count'=>117, 'shade'=>'s3', 'img'=>'img/davie.png'],
-  ['id'=>'mathematics', 'name'=>'Mathematics', 'count'=>74,  'shade'=>'s4', 'img'=>'img/davie.png'],
-  ['id'=>'philosophy',  'name'=>'Philosophy',  'count'=>63,  'shade'=>'s5', 'img'=>'img/davie.png'],
-  ['id'=>'biology',     'name'=>'Biology',     'count'=>89,  'shade'=>'s1', 'img'=>'img/davie.png'],
-  ['id'=>'geography',   'name'=>'Geography',   'count'=>55,  'shade'=>'s2', 'img'=>'img/davie.png'],
-  ['id'=>'economics',   'name'=>'Economics',   'count'=>81,  'shade'=>'s3', 'img'=>'img/davie.png'],
-  ['id'=>'arts',        'name'=>'Arts',        'count'=>47,  'shade'=>'s4', 'img'=>'img/davie.png'],
-  ['id'=>'physics',     'name'=>'Physics',     'count'=>103, 'shade'=>'s5', 'img'=>'img/davie.png'],
+  ['id'=>'science',     'name'=>'Science',     'shade'=>'s1', 'img'=>'img/davie.png'],
+  ['id'=>'history',     'name'=>'History',     'shade'=>'s2', 'img'=>'img/davie.png'],
+  ['id'=>'technology',  'name'=>'Technology',  'shade'=>'s3', 'img'=>'img/davie.png'],
+  ['id'=>'mathematics', 'name'=>'Mathematics', 'shade'=>'s4', 'img'=>'img/davie.png'],
+  ['id'=>'philosophy',  'name'=>'Philosophy',  'shade'=>'s5', 'img'=>'img/davie.png'],
+  ['id'=>'biology',     'name'=>'Biology',     'shade'=>'s1', 'img'=>'img/davie.png'],
+  ['id'=>'geography',   'name'=>'Geography',   'shade'=>'s2', 'img'=>'img/davie.png'],
+  ['id'=>'economics',   'name'=>'Economics',   'shade'=>'s3', 'img'=>'img/davie.png'],
+  ['id'=>'arts',        'name'=>'Arts',        'shade'=>'s4', 'img'=>'img/davie.png'],
+  ['id'=>'physics',     'name'=>'Physics',     'shade'=>'s5', 'img'=>'img/davie.png'],
 ];
 
 $articles = [
@@ -38,7 +38,7 @@ $articles = [
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Smiki</title>
+<title>Portal Wiki</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/wiki.css">
@@ -50,7 +50,7 @@ $articles = [
 <header class="site-header">
   <div class="container-lg py-0">
     <div class="d-flex align-items-center gap-3" style="height:56px">
-      <a class="logo" href="wiki.php" onclick="resetFilters();return false;">smiki</a>
+      <a class="logo" href="wiki.php" onclick="resetFilters();return false;">Portal <span class="logo-wiki">Wiki</span></a>
       <div class="search-wrap flex-grow-1">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="searchInput" placeholder="Search articles…" oninput="filterArticles(this.value)">

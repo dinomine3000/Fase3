@@ -13,44 +13,19 @@ function renderSubcats() {
   const wrap = document.getElementById('subcatRow');
   if (!subcategories.length) { wrap.style.display = 'none'; return; }
   wrap.className = 'subcat-banners';
-  wrap.innerHTML = subcategories.map(s => `
-    <a class="subcat-banner" href="subcategory.php?id=${s.id}">
-      <div class="subcat-banner-img">
-        ${s.image
-          ? `<img src="${s.image}" alt="">`
-          : `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg>`}
-      </div>
+  const defaultImage = 'img/davie.png';
+  wrap.innerHTML = subcategories.map(s => {
+    const img = s.image || defaultImage;
+    return `
+    <a class="subcat-banner" href="subcategory.php?id=${s.id}" style="--subcat-banner-image: url('${img}')">
       <div class="subcat-banner-body">
         <div class="subcat-banner-title">${s.name}</div>
         <div class="subcat-banner-desc">${s.description || ''}</div>
       </div>
-      <div class="subcat-banner-meta">${s.count} articles</div>
-    </a>`).join('');
-}
-
-/* ── RENDER ARTICLES ── */
-function renderArticles() {
-  let list = articles;
-  if (searchTerm) list = list.filter(a =>
-    a.title.toLowerCase().includes(searchTerm) ||
-    a.excerpt.toLowerCase().includes(searchTerm)
-  );
-  document.getElementById('articleList').innerHTML = list.length
-    ? list.map(a => `
-        <div class="article-bar" onclick="location.href='article.php?id=1'">
-          <span class="art-tag">${a.tag}</span>
-          <div class="art-body">
-            <div class="art-title">${a.title}</div>
-            <div class="art-excerpt">${a.excerpt}</div>
-          </div>
-          <div class="art-meta">
-            <span>${a.date}</span><span class="art-sep">·</span><span>${a.read}</span>
-          </div>
-        </div>`).join('')
-    : '<div class="no-results">No articles found.</div>';
+    </a>`;
+  }).join('');
 }
 
 function filterArticles(val) { searchTerm = val.toLowerCase(); renderArticles(); }
 
 renderSubcats();
-renderArticles();

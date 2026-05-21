@@ -24,7 +24,6 @@ function renderCats() {
         </div>
         <div class="cat-body">
           <div class="cat-label">${c.name}</div>
-          <div class="cat-count">${c.count} articles</div>
         </div>
       </div>
     </div>`).join('');

@@ -21,6 +21,43 @@ $categories = [
   ['id'=>'physics',     'name'=>'Physics'    ],
 ];
 
+// TODO: Replace with DB query, e.g.:
+// $subcategories = $db->query("SELECT id, name, parent_id FROM subcategories ORDER BY parent_id, name")->fetchAll();
+$subcategories = [
+  ['id'=>'classical',      'name'=>'Classical Mechanics',  'parent_id'=>'physics'    ],
+  ['id'=>'quantum',        'name'=>'Quantum Mechanics',    'parent_id'=>'physics'    ],
+  ['id'=>'relativity',     'name'=>'Relativity',           'parent_id'=>'physics'    ],
+  ['id'=>'optics',         'name'=>'Optics',               'parent_id'=>'physics'    ],
+  ['id'=>'thermo',         'name'=>'Thermodynamics',       'parent_id'=>'physics'    ],
+  ['id'=>'genetics',       'name'=>'Genetics',             'parent_id'=>'biology'    ],
+  ['id'=>'ecology',        'name'=>'Ecology',              'parent_id'=>'biology'    ],
+  ['id'=>'microbiology',   'name'=>'Microbiology',         'parent_id'=>'biology'    ],
+  ['id'=>'calculus',       'name'=>'Calculus',             'parent_id'=>'mathematics'],
+  ['id'=>'algebra',        'name'=>'Algebra',              'parent_id'=>'mathematics'],
+  ['id'=>'statistics',     'name'=>'Statistics',           'parent_id'=>'mathematics'],
+  ['id'=>'geometry',       'name'=>'Geometry',             'parent_id'=>'mathematics'],
+  ['id'=>'ai',             'name'=>'Artificial Intelligence','parent_id'=>'technology'],
+  ['id'=>'networking',     'name'=>'Networking',           'parent_id'=>'technology' ],
+  ['id'=>'software',       'name'=>'Software Engineering', 'parent_id'=>'technology' ],
+  ['id'=>'ancient',        'name'=>'Ancient History',      'parent_id'=>'history'    ],
+  ['id'=>'modern',         'name'=>'Modern History',       'parent_id'=>'history'    ],
+  ['id'=>'worldwars',      'name'=>'World Wars',           'parent_id'=>'history'    ],
+  ['id'=>'ethics',         'name'=>'Ethics',               'parent_id'=>'philosophy' ],
+  ['id'=>'logic',          'name'=>'Logic',                'parent_id'=>'philosophy' ],
+  ['id'=>'metaphysics',    'name'=>'Metaphysics',          'parent_id'=>'philosophy' ],
+  ['id'=>'climate',        'name'=>'Climate & Environment','parent_id'=>'science'    ],
+  ['id'=>'chemistry',      'name'=>'Chemistry',            'parent_id'=>'science'    ],
+  ['id'=>'astronomy',      'name'=>'Astronomy',            'parent_id'=>'science'    ],
+  ['id'=>'cartography',    'name'=>'Cartography',          'parent_id'=>'geography'  ],
+  ['id'=>'geopolitics',    'name'=>'Geopolitics',          'parent_id'=>'geography'  ],
+  ['id'=>'macroeconomics', 'name'=>'Macroeconomics',       'parent_id'=>'economics'  ],
+  ['id'=>'microeconomics', 'name'=>'Microeconomics',       'parent_id'=>'economics'  ],
+  ['id'=>'finance',        'name'=>'Finance',              'parent_id'=>'economics'  ],
+  ['id'=>'painting',       'name'=>'Painting',             'parent_id'=>'arts'       ],
+  ['id'=>'music',          'name'=>'Music',                'parent_id'=>'arts'       ],
+  ['id'=>'architecture',   'name'=>'Architecture',         'parent_id'=>'arts'       ],
+];
+
 $editArticle = null; // set to fetched article array when editing
 ?>
 <!DOCTYPE html>
@@ -28,7 +65,7 @@ $editArticle = null; // set to fetched article array when editing
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Article Editor — Smiki</title>
+<title>Article Editor — Portal Wiki</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles/wiki.css">
@@ -41,7 +78,7 @@ $editArticle = null; // set to fetched article array when editing
 <header class="site-header">
   <div class="container-lg py-0">
     <div class="d-flex align-items-center gap-3" style="height:56px">
-      <a class="logo" href="wiki.php">smiki</a>
+      <a class="logo" href="wiki.php">Portal <span class="logo-wiki">Wiki</span></a>
       <div class="search-wrap flex-grow-1">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" placeholder="Search articles…">
@@ -81,8 +118,10 @@ $editArticle = null; // set to fetched article array when editing
         </select>
       </div>
       <div class="editor-field">
-        <label class="editor-label" for="fieldTags">Tags</label>
-        <input class="editor-input" type="text" id="fieldTags" placeholder="e.g. Physics, Quantum">
+        <label class="editor-label" for="fieldSubcategory">Subcategory</label>
+        <select class="editor-input editor-select" id="fieldSubcategory" disabled>
+          <option value="">Select category first…</option>
+        </select>
       </div>
     </div>
 
@@ -133,8 +172,9 @@ $editArticle = null; // set to fetched article array when editing
 </div>
 
 <script>
-const categories  = <?php echo json_encode($categories); ?>;
-const editArticle = <?php echo json_encode($editArticle); ?>;
+const categories     = <?php echo json_encode($categories); ?>;
+const subcategories  = <?php echo json_encode($subcategories); ?>;
+const editArticle    = <?php echo json_encode($editArticle); ?>;
 </script>
 <script src="js/article-editor.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

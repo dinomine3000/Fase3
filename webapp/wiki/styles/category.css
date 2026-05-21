@@ -4,11 +4,6 @@
   transition: background .25s, border-color .25s;
   padding: 1.25rem 0;
 }
-.cat-hero.s1 { background: var(--cat-s1); }
-.cat-hero.s2 { background: var(--cat-s2); }
-.cat-hero.s3 { background: var(--cat-s3); }
-.cat-hero.s4 { background: var(--cat-s4); }
-.cat-hero.s5 { background: var(--cat-s5); }
 
 .cat-hero-inner {
   display: flex; align-items: center; gap: 1rem;
@@ -55,22 +50,16 @@
 .subcat-banners { display: flex; flex-direction: column; gap: 8px; }
 
 .subcat-banner {
-  background: var(--bg2); border: 1px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: 9px; overflow: hidden;
   display: flex; align-items: stretch; text-decoration: none;
   transition: border-color .15s, box-shadow .15s, background .25s;
-  min-height: 72px;
+  min-height: 120px;
+  background-image: var(--subcat-banner-image, none);
+  background-size: cover; background-position: center;
 }
-.subcat-banner:hover { border-color: var(--border2); box-shadow: 0 2px 10px var(--shadow); }
 
-.subcat-banner-img {
-  width: 110px; flex-shrink: 0;
-  background: var(--bg3); border-right: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden; transition: background .25s, border-color .25s;
-}
-.subcat-banner-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.subcat-banner-img svg { color: var(--cat-icon); }
+.subcat-banner:hover { border-color: var(--border2); box-shadow: 0 2px 10px var(--shadow); }
 
 .subcat-banner-body {
   flex: 1; min-width: 0; padding: 0.75rem 1rem;
