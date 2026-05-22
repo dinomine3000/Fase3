@@ -87,7 +87,7 @@ $result = sendAuthEmail(
     </head>
     <body>
         <h1> E-mail validation </h1>
-        <?php if($result == true) echo "<p> Check your e-mail ($ToEmail)for a validation link to create the account </p>" . "<p>$link</p>";
+        <?php if($result == true) echo "<p> Check your e-mail ($ToEmail)for a validation link to create the account </p>";
         else echo "E-Mail failed to be sent."?>
         
     </body>

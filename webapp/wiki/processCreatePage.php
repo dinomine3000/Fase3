@@ -25,5 +25,7 @@ include("../../Lib/lib.php");
     $content = filter_input( $_INPUT_METHOD, 'content', FILTER_UNSAFE_RAW, $FILTER_FLAG_NO_ENCODE_QUOTES);
 
     writeWikiPage($primary, $secondary, $title, $content);
+
+    header("Location: ../index.php");
     
 ?>

@@ -1,6 +1,7 @@
 <?php
 
 require_once( "db.php" );
+require_once( "lib-mail-v2.php" );
 
 function getBrowser() {
     $userBrowser = '';
@@ -585,7 +586,6 @@ function checkUserRole($idUser, $roleName) {
     dbDisconnect();
     return $hasRole;
 }
-
 function writeWikiPage($primaryCategory, $secondaryCategory, $pageTitle, $content) {
     $success = false;
     dbConnect(ConfigFile);
@@ -604,6 +604,37 @@ function writeWikiPage($primaryCategory, $secondaryCategory, $pageTitle, $conten
 
     if (mysqli_query($GLOBALS['ligacao'], $query)) {
         $success = true;
+    }
+
+    // Send notifications if the database write succeeded
+    if ($success) {
+        $notifyQuery = "SELECT u.`name`, u.`email` 
+                        FROM `$dataBaseName`.`category-notifications` n
+                        JOIN `$dataBaseName`.`auth-basic` u ON n.`userId` = u.`idUser`
+                        WHERE n.`secondaryCategory` = '$secondaryCategory' AND u.`email` IS NOT NULL AND u.`email` != ''";
+        
+        $notifyResult = mysqli_query($GLOBALS['ligacao'], $notifyQuery);
+        $subscribers = [];
+        if ($notifyResult) {
+            while ($row = mysqli_fetch_assoc($notifyResult)) {
+                $subscribers[] = $row;
+            }
+            mysqli_free_result($notifyResult);
+        }
+
+        if (!empty($subscribers)) {
+            $flags[] = FILTER_NULL_ON_FAILURE;
+            $serverName = filter_input(INPUT_SERVER, 'SERVER_NAME', FILTER_UNSAFE_RAW, $flags);
+            $serverPort = 80;
+            $name = webAppName();
+            $baseUrl = "http://" . $serverName . ":" . $serverPort;
+            $link = $baseUrl . $name . "viewPage.php?title=" . urlencode($pageTitle);
+
+            $Subject = "New/Updated Page in Category: " . $secondaryCategory;
+            $Message = "A page titled '" . $pageTitle . "' has been added or updated in the '" . $secondaryCategory . "' category.\n\nYou can view the page here:\n" . $link;
+
+            sendNotificationEmails($subscribers, $Subject, $Message);
+        }
     }
 
     dbDisconnect();
@@ -809,6 +840,7 @@ function getUserRoleFriendlyName($username) {
     dbDisconnect();
     return $friendlyName;
 }
+
 function processPageChange($username, $pageTitle, $newContent, $visibility) {
     // 1. Check role authorization level using your existing function
     $isEditorOrHigher = authorizeUserByLevel($username, 'editor');
@@ -843,9 +875,10 @@ function processPageChange($username, $pageTitle, $newContent, $visibility) {
     mysqli_free_result($userResult);
 
     $hasHighContributions = ($contributions > 3);
+    $isDirectApply = ($isEditorOrHigher || $hasHighContributions);
 
     // 3. Routing decision logic
-    if ($isEditorOrHigher || $hasHighContributions) {
+    if ($isDirectApply) {
         // Direct Apply: Update live production document text immediately
         $updateQuery = "UPDATE `$dataBaseName`.`page` 
                         SET `content` = '$newContent', `visibility` = '$newVisibility' 
@@ -862,10 +895,224 @@ function processPageChange($username, $pageTitle, $newContent, $visibility) {
         $success = mysqli_query($GLOBALS['ligacao'], $insertQuery);
     }
 
+    // 4. Send Notifications if the direct update was successful
+    if ($success && $isDirectApply) {
+        $notifyQuery = "SELECT u.`name`, u.`email` 
+                        FROM `$dataBaseName`.`page-notifications` n
+                        JOIN `$dataBaseName`.`auth-basic` u ON n.`userId` = u.`idUser`
+                        WHERE n.`pageTitle` = '$pageTitle' AND u.`email` IS NOT NULL AND u.`email` != ''";
+        
+        $notifyResult = mysqli_query($GLOBALS['ligacao'], $notifyQuery);
+        $subscribers = [];
+        if ($notifyResult) {
+            while ($row = mysqli_fetch_assoc($notifyResult)) {
+                $subscribers[] = $row;
+            }
+            mysqli_free_result($notifyResult);
+        }
+
+        if (!empty($subscribers)) {
+            $flags[] = FILTER_NULL_ON_FAILURE;
+            $serverName = filter_input(INPUT_SERVER, 'SERVER_NAME', FILTER_UNSAFE_RAW, $flags);
+            $serverPort = 80;
+            $name = webAppName();
+            $baseUrl = "http://" . $serverName . ":" . $serverPort;
+            $link = $baseUrl . $name . "viewPage.php?title=" . urlencode($pageTitle);
+
+            $Subject = "Wiki Page Updated: " . $pageTitle;
+            $Message = "The page '" . $pageTitle . "' has been updated by " . $username . ".\n\nYou can view the changes here:\n" . $link;
+
+            sendNotificationEmails($subscribers, $Subject, $Message);
+        }
+    }
+
     dbDisconnect();
     return $success;
 }
 
+function sendNotificationEmails($subscribers, $subject, $message) {
+    if (empty($subscribers)) {
+        return;
+    }
+
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    $emailId = 4;
+    $queryString = "SELECT * FROM `$dataBaseName`.`email-accounts` WHERE `id`=$emailId";
+    $queryResult = mysqli_query($GLOBALS['ligacao'], $queryString);
+    
+    if ($queryResult && $record = mysqli_fetch_array($queryResult)) {
+        $smtpServer = $record['smtpServer'];
+        $port = intval($record['port']);
+        $useSSL = boolval($record['useSSL']);
+        $timeout = intval($record['timeout']);
+        $loginName = $record['loginName'];
+        $password = $record['password'];
+        $fromEmail = $record['email'];
+        $fromName = $record['displayName'];
+        
+        mysqli_free_result($queryResult);
+
+        foreach ($subscribers as $subscriber) {
+            sendAuthEmail(
+                $smtpServer,
+                $useSSL,
+                $port,
+                $timeout,
+                $loginName,
+                $password,
+                $fromEmail,
+                $fromName,
+                $subscriber['name'] . " <" . $subscriber['email'] . ">",
+                NULL,
+                NULL,
+                $subject,
+                $message,
+                false,
+                NULL
+            );
+        }
+    } else if ($queryResult) {
+        mysqli_free_result($queryResult);
+    }
+}
+
+function getNotificationEmailsByPage($pageTitle) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $pageTitle = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
+    $emails = [];
+
+    $query = "SELECT u.`email` 
+              FROM `$dataBaseName`.`page-notifications` n
+              JOIN `$dataBaseName`.`auth-basic` u ON n.`userId` = u.`idUser`
+              WHERE n.`pageTitle` = '$pageTitle' AND u.`email` IS NOT NULL AND u.`email` != ''";
+
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $emails[] = $row['email'];
+        }
+        mysqli_free_result($result);
+    }
+
+    dbDisconnect();
+    return array_unique($emails);
+}
+
+function getNotificationEmailsByCategory($secondaryCategory) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $secondaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
+    $emails = [];
+
+    // Fetches subscribers based on the exact secondaryCategory matching your configuration
+    $query = "SELECT u.`email` 
+              FROM `$dataBaseName`.`category-notifications` n
+              JOIN `$dataBaseName`.`auth-basic` u ON n.`userId` = u.`idUser`
+              WHERE n.`secondaryCategory` = '$secondaryCategory' AND u.`email` IS NOT NULL AND u.`email` != ''";
+
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $emails[] = $row['email'];
+        }
+        mysqli_free_result($result);
+    }
+
+    dbDisconnect();
+    return array_unique($emails);
+}
+function togglePageSubscription($userId, $pageTitle) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $userId = (int)$userId;
+    $pageTitle = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
+
+    $check = "SELECT 1 FROM `$dataBaseName`.`page-notifications` WHERE `userId` = $userId AND `pageTitle` = '$pageTitle' LIMIT 1";
+    $result = mysqli_query($GLOBALS['ligacao'], $check);
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        $query = "DELETE FROM `$dataBaseName`.`page-notifications` WHERE `userId` = $userId AND `pageTitle` = '$pageTitle'";
+    } else {
+        $query = "INSERT INTO `$dataBaseName`.`page-notifications` (`userId`, `pageTitle`) VALUES ($userId, '$pageTitle')";
+    }
+    
+    if ($result) mysqli_free_result($result);
+    $success = mysqli_query($GLOBALS['ligacao'], $query);
+    dbDisconnect();
+    return $success;
+}
+
+function toggleCategorySubscription($userId, $primaryCategory, $secondaryCategory) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $userId = (int)$userId;
+    $primaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryCategory);
+    $secondaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
+
+    $check = "SELECT 1 FROM `$dataBaseName`.`category-notifications` 
+              WHERE `userId` = $userId AND `primaryCategory` = '$primaryCategory' AND `secondaryCategory` = '$secondaryCategory' LIMIT 1";
+    $result = mysqli_query($GLOBALS['ligacao'], $check);
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        $query = "DELETE FROM `$dataBaseName`.`category-notifications` 
+                  WHERE `userId` = $userId AND `primaryCategory` = '$primaryCategory' AND `secondaryCategory` = '$secondaryCategory'";
+    } else {
+        $query = "INSERT INTO `$dataBaseName`.`category-notifications` (`userId`, `primaryCategory`, `secondaryCategory`) 
+                  VALUES ($userId, '$primaryCategory', '$secondaryCategory')";
+    }
+
+    if ($result) mysqli_free_result($result);
+    $success = mysqli_query($GLOBALS['ligacao'], $query);
+    dbDisconnect();
+    return $success;
+}
+
+function isSubscribedToPage($userId, $pageTitle) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $userId = (int)$userId;
+    $pageTitle = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
+
+    $query = "SELECT 1 FROM `$dataBaseName`.`page-notifications` WHERE `userId` = $userId AND `pageTitle` = '$pageTitle' LIMIT 1";
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+    $status = ($result && mysqli_num_rows($result) > 0);
+
+    if ($result) mysqli_free_result($result);
+    dbDisconnect();
+    return $status;
+}
+
+function isSubscribedToCategory($userId, $primaryCategory, $secondaryCategory) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $userId = (int)$userId;
+    $primaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryCategory);
+    $secondaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
+
+    $query = "SELECT 1 FROM `$dataBaseName`.`category-notifications` 
+              WHERE `userId` = $userId AND `primaryCategory` = '$primaryCategory' AND `secondaryCategory` = '$secondaryCategory' LIMIT 1";
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+    $status = ($result && mysqli_num_rows($result) > 0);
+
+    if ($result) mysqli_free_result($result);
+    dbDisconnect();
+    return $status;
+}
 function getAvailableRolesUpToUser($username) {
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
@@ -1028,6 +1275,7 @@ function moderateProposal($changeId, $action) {
     dbDisconnect();
     return $success;
 }
+
 
 /**
  * Lê todas as discussões ativas, globalmente ou filtradas por categorias. digo
