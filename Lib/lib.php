@@ -820,4 +820,227 @@ function processPageChange($username, $pageTitle, $newContent) {
     dbDisconnect();
     return $success;
 }
+
+/**
+ * Lê todas as discussões ativas, globalmente ou filtradas por categorias. digo
+ * @param string|null $primaryCategory Categoria primária a filtrar (opcional)
+ * @param string|null $secondaryCategory Categoria secundária a filtrar (opcional)
+ * @return array Lista associativa de discussões
+ */
+function getForumDiscussions($primaryCategory = null, $secondaryCategory = null) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $query = "SELECT d.*, u.name as author, 
+              (SELECT COUNT(*) FROM `$dataBaseName`.`forum_posts` p WHERE p.idDiscussion = d.idDiscussion) as total_replies
+              FROM `$dataBaseName`.`forum_discussions` d
+              JOIN `$dataBaseName`.`auth-basic` u ON d.idUser = u.idUser";
+
+    $whereClauses = [];
+    if (!empty($primaryCategory)) {
+        $pCatSafe = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryCategory);
+        $whereClauses[] = "d.primaryCategory = '$pCatSafe'";
+        if (!empty($secondaryCategory)) {
+            $sCatSafe = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
+            $whereClauses[] = "d.secondaryCategory = '$sCatSafe'";
+        }
+    }
+
+    if (!empty($whereClauses)) {
+        $query .= " WHERE " . implode(" AND ", $whereClauses);
+    }
+
+    $query .= " ORDER BY d.isSticky DESC, d.last_posted_at DESC";
+
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+    $discussions = [];
+
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $discussions[] = $row;
+        }
+        mysqli_free_result($result);
+    }
+
+    dbDisconnect();
+    return $discussions;
+}
+
+/**
+ * Lê todos os posts cronológicos de uma discussão e verifica se o utilizador atual já fez Like.
+ * @param int $idDiscussion ID do tópico a abrir
+ * @param int $currentUserId ID do utilizador ativo (para avaliar os gostos)
+ * @return array Lista de posts do tópico
+ */
+function getForumPosts($idDiscussion, $currentUserId = 0) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $idDiscussionSafe = (int)$idDiscussion;
+    $currentUserSafe = (int)$currentUserId;
+
+    $query = "SELECT p.*, u.name as author,
+              (SELECT COUNT(*) FROM `$dataBaseName`.`forum_likes` l WHERE l.idPost = p.idPost) as likes_count,
+              EXISTS(SELECT 1 FROM `$dataBaseName`.`forum_likes` l WHERE l.idPost = p.idPost AND l.idUser = $currentUserSafe) as has_liked
+              FROM `$dataBaseName`.`forum_posts` p
+              JOIN `$dataBaseName`.`auth-basic` u ON p.idUser = u.idUser
+              WHERE p.idDiscussion = $idDiscussionSafe
+              ORDER BY p.created_at ASC";
+
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+    $posts = [];
+
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            // Conversão boolean para o JSON do frontend
+            $row['has_liked'] = (bool)$row['has_liked']; 
+            $posts[] = $row;
+        }
+        mysqli_free_result($result);
+    }
+
+    dbDisconnect();
+    return $posts;
+}
+
+/**
+ * Cria uma nova discussão (Tópico). Abre também o primeiro Post correspondente.
+ * @return int|bool Retorna o ID da nova discussão criada ou falso em caso de erro.
+ */
+function createForumDiscussion($idUser, $title, $content, $primaryCategory, $secondaryCategory = null) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $idUserSafe = (int)$idUser;
+    $titleSafe = mysqli_real_escape_string($GLOBALS['ligacao'], $title);
+    $contentSafe = mysqli_real_escape_string($GLOBALS['ligacao'], $content);
+    $primarySafe = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryCategory);
+    $secondarySafe = !empty($secondaryCategory) ? "'" . mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory) . "'" : "NULL";
+    
+    $slug = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
+    $slugSafe = mysqli_real_escape_string($GLOBALS['ligacao'], $slug);
+
+    mysqli_begin_transaction($GLOBALS['ligacao']);
+
+    // 1. Inserir Discussão
+    $queryDisc = "INSERT INTO `$dataBaseName`.`forum_discussions` (`title`, `slug`, `idUser`, `primaryCategory`, `secondaryCategory`) 
+                  VALUES ('$titleSafe', '$slugSafe', $idUserSafe, '$primarySafe', $secondarySafe)";
+    
+    if (mysqli_query($GLOBALS['ligacao'], $queryDisc)) {
+        $idDiscussion = mysqli_insert_id($GLOBALS['ligacao']);
+
+        // 2. Inserir o primeiro Post associado a essa discussão
+        $queryPost = "INSERT INTO `$dataBaseName`.`forum_posts` (`idDiscussion`, `idUser`, `content`) 
+                      VALUES ($idDiscussion, $idUserSafe, '$contentSafe')";
+        
+        if (mysqli_query($GLOBALS['ligacao'], $queryPost)) {
+            mysqli_commit($GLOBALS['ligacao']);
+            dbDisconnect();
+            return $idDiscussion;
+        }
+    }
+
+    mysqli_rollback($GLOBALS['ligacao']);
+    dbDisconnect();
+    return false;
+}
+
+/**
+ * Adiciona uma resposta a uma discussão existente e dá o "bump" de tempo ao tópico pai.
+ */
+function createForumPost($idUser, $idDiscussion, $content) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $idUserSafe = (int)$idUser;
+    $idDiscSafe = (int)$idDiscussion;
+    $contentSafe = mysqli_real_escape_string($GLOBALS['ligacao'], $content);
+
+    mysqli_begin_transaction($GLOBALS['ligacao']);
+
+    $queryPost = "INSERT INTO `$dataBaseName`.`forum_posts` (`idDiscussion`, `idUser`, `content`) 
+                  VALUES ($idDiscSafe, $idUserSafe, '$contentSafe')";
+
+    if (mysqli_query($GLOBALS['ligacao'], $queryPost)) {
+        // Atualizar o last_posted_at do tópico para o empurrar para cima na listagem
+        $queryBump = "UPDATE `$dataBaseName`.`forum_discussions` 
+                      SET `last_posted_at` = NOW() 
+                      WHERE `idDiscussion` = $idDiscSafe";
+        mysqli_query($GLOBALS['ligacao'], $queryBump);
+        
+        mysqli_commit($GLOBALS['ligacao']);
+        dbDisconnect();
+        return true;
+    }
+
+    mysqli_rollback($GLOBALS['ligacao']);
+    dbDisconnect();
+    return false;
+}
+
+/**
+ * Liga ou desliga o "Gosto" de um utilizador num post específico.
+ * @return string 'liked' ou 'unliked' ou false em caso de falha.
+ */
+function toggleForumLike($idUser, $idPost) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $idUserSafe = (int)$idUser;
+    $idPostSafe = (int)$idPost;
+    $action = false;
+
+    // Verificar se já tem Gosto
+    $queryCheck = "SELECT 1 FROM `$dataBaseName`.`forum_likes` WHERE `idPost` = $idPostSafe AND `idUser` = $idUserSafe";
+    $resultCheck = mysqli_query($GLOBALS['ligacao'], $queryCheck);
+
+    if ($resultCheck && mysqli_num_rows($resultCheck) > 0) {
+        // Remover Gosto
+        $queryDel = "DELETE FROM `$dataBaseName`.`forum_likes` WHERE `idPost` = $idPostSafe AND `idUser` = $idUserSafe";
+        if (mysqli_query($GLOBALS['ligacao'], $queryDel)) {
+            $action = 'unliked';
+        }
+    } else {
+        // Inserir Gosto
+        $queryIns = "INSERT INTO `$dataBaseName`.`forum_likes` (`idPost`, `idUser`) VALUES ($idPostSafe, $idUserSafe)";
+        if (mysqli_query($GLOBALS['ligacao'], $queryIns)) {
+            $action = 'liked';
+        }
+    }
+
+    if ($resultCheck) mysqli_free_result($resultCheck);
+    dbDisconnect();
+    return $action;
+}
+
+/**
+ * Utilitário partilhado para resolver o ID de um utilizador ativo com base no HTTP Auth
+ */
+function getActiveUserIdFromAuth() {
+    $username = $_SERVER['PHP_AUTH_USER'] ?? null;
+    if (!$username) return 0;
+
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $usernameSafe = mysqli_real_escape_string($GLOBALS['ligacao'], $username);
+    $query = "SELECT `idUser` FROM `$dataBaseName`.`auth-basic` WHERE `name` = '$usernameSafe' AND `active` = 1 LIMIT 1";
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+    
+    $id = 0;
+    if ($result && mysqli_num_rows($result) > 0) {
+        $row = mysqli_fetch_assoc($result);
+        $id = (int)$row['idUser'];
+        mysqli_free_result($result);
+    }
+
+    dbDisconnect();
+    return $id;
+}
 ?>

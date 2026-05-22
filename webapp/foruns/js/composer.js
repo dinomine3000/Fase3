@@ -1,88 +1,70 @@
-/**
- * js/composer.js
- * Gestão do compositor de nova discussão (slide-up).
- * Depende das funções openComposer / closeComposer / fetchDiscussions / loadDiscussionDetails
- * definidas em discussions.js (carregado a seguir no HTML).
- */
+// js/composer.js
 
-document.addEventListener("DOMContentLoaded", () => {
-    const btnClose   = document.getElementById("btnCloseComposer");
-    const btnCancel  = document.getElementById("btnCancelComposer");
-    const btnSubmit  = document.getElementById("btnSubmitComposer");
-    const overlay    = document.getElementById("composerOverlay");
+// Exibe o formulário de criação de um novo tópico
+function showNewDiscussionForm() {
+    const contentArea = document.getElementById("forum-main-content");
+    
+    contentArea.innerHTML = `
+        <button onclick="loadDiscussions()" class="btn-secondary">Cancel</button>
+        <div class="forum-composer">
+            <h2>Criar Novo Tópico de Discussão</h2>
+            <form id="newDiscussionForm" onsubmit="submitNewDiscussion(event)">
+                <label>Título:</label>
+                <input type="text" id="compTitle" required placeholder="Introduza um título apelativo...">
+                
+                <label>Categoria Primária:</label>
+                <select id="compPrimary" required>
+                    <option value="Geral">Geral</option>
+                    <option value="Suporte">Suporte</option>
+                </select>
 
-    // ── Fechar ──────────────────────────────────────────────────────────────
-    if (btnClose)  btnClose.addEventListener("click",  () => closeComposer());
-    if (btnCancel) btnCancel.addEventListener("click", () => closeComposer());
-    if (overlay)   overlay.addEventListener("click",   () => closeComposer());
+                <label>Mensagem Inicial:</label>
+                <textarea id="compContent" required rows="6" placeholder="Escreva a sua mensagem aqui..."></textarea>
+                
+                <button type="submit" class="btn-primary">Lançar Discussão</button>
+            </form>
+        </div>
+    `;
+}
 
-    // Fechar com Escape
-    document.addEventListener("keydown", e => {
-        if (e.key === "Escape") closeComposer();
-    });
+// Submete a nova discussão via AJAX para createDiscussions.php
+function submitNewDiscussion(event) {
+    event.preventDefault();
 
-    // ── Submeter nova discussão ──────────────────────────────────────────────
-    if (btnSubmit) {
-        btnSubmit.addEventListener("click", () => {
-            const titleEl     = document.getElementById("composerTitle");
-            const contentEl   = document.getElementById("composerContent");
-            const primaryEl   = document.getElementById("composerPrimaryCategory");
-            const secondaryEl = document.getElementById("composerSecondaryCategory");
+    const formData = new FormData();
+    formData.append("title", document.getElementById("compTitle").value);
+    formData.append("primaryCategory", document.getElementById("compPrimary").value);
+    formData.append("content", document.getElementById("compContent").value);
 
-            const title     = titleEl?.value.trim()     ?? "";
-            const content   = contentEl?.value.trim()   ?? "";
-            const primary   = primaryEl?.value          ?? "";
-            const secondary = secondaryEl?.value        ?? "";
-
-            if (!title) {
-                titleEl?.focus();
-                alert("Por favor, preencha o título do tópico.");
-                return;
+    fetch("createDiscussions.php", { method: "POST", body: formData })
+        .then(res => res.json())
+        .then(response => {
+            if (response.status === "success") {
+                // Redireciona imediatamente para o tópico recém-criado
+                viewDiscussion(response.idDiscussion);
+            } else {
+                alert(response.message);
             }
-            if (!content) {
-                contentEl?.focus();
-                alert("Por favor, escreva o conteúdo do tópico.");
-                return;
-            }
-            if (!primary) {
-                alert("Por favor, selecione uma categoria principal.");
-                return;
-            }
-
-            btnSubmit.disabled    = true;
-            btnSubmit.textContent = "A publicar…";
-
-            const body = new FormData();
-            body.append("title",             title);
-            body.append("content",           content);
-            body.append("primaryCategory",   primary);
-            body.append("secondaryCategory", secondary);
-
-            fetch("./createDiscussions.php", { method: "POST", body })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        if (titleEl)   titleEl.value   = "";
-                        if (contentEl) contentEl.value = "";
-
-                        closeComposer();
-
-                        // Atualizar lista e abrir logo o novo tópico
-                        if (typeof fetchDiscussions === "function") {
-                            fetchDiscussions();
-                        }
-                        if (typeof loadDiscussionDetails === "function" && data.idDiscussion) {
-                            loadDiscussionDetails(data.idDiscussion, title);
-                        }
-                    } else {
-                        alert("Erro ao criar tópico: " + (data.error || "Erro desconhecido"));
-                    }
-                })
-                .catch(() => alert("Erro de ligação ao servidor."))
-                .finally(() => {
-                    btnSubmit.disabled    = false;
-                    btnSubmit.textContent = "Publicar Tópico";
-                });
         });
-    }
-});
+}
+
+// Submete uma nova resposta (comentário) rápida para createPost.php
+function submitReply(event, idDiscussion) {
+    event.preventDefault();
+    
+    const contentValue = document.getElementById("replyContent").value;
+    const formData = new FormData();
+    formData.append("idDiscussion", idDiscussion);
+    formData.append("content", contentValue);
+
+    fetch("createPost.php", { method: "POST", body: formData })
+        .then(res => res.json())
+        .then(response => {
+            if (response.status === "success") {
+                // Recarrega a discussão para mostrar a nova mensagem no fim
+                viewDiscussion(idDiscussion);
+            } else {
+                alert(response.message);
+            }
+        });
+}

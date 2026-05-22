@@ -1,45 +1,37 @@
 <?php
+// createPost.php
+include_once("../../Lib/lib.php");
+
 header('Content-Type: application/json; charset=utf-8');
-require_once("../../Lib/lib.php");
-require_once("../../Lib/db.php");
 
-if (!isset($_SESSION)) session_start();
-
-$idUser = isset($_SESSION['idUser']) ? (int)$_SESSION['idUser'] : null;
-
-if (!$idUser) {
-    echo json_encode(['success' => false, 'error' => 'Utilizador não autenticado. Faça login.']);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['status' => 'error', 'message' => 'Método não permitido.']);
     exit;
 }
 
-$idDiscussion = $_POST['idDiscussion'] ?? null;
-$content      = $_POST['content']      ?? null;
-
-if (!$idDiscussion || !$content) {
-    echo json_encode(['success' => false, 'error' => 'Campos obrigatórios em falta']);
+$idUser = getActiveUserIdFromAuth();
+if ($idUser === 0) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Utilizador não autenticado.']);
     exit;
 }
 
-dbConnect(ConfigFile);
-$dataBaseName = $GLOBALS['configDataBase']->db;
-mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+$idDiscussion = (int)($_POST['idDiscussion'] ?? 0);
+$content = trim($_POST['content'] ?? '');
 
-mysqli_begin_transaction($GLOBALS['ligacao']);
-try {
-    $sqlPost  = "INSERT INTO `$dataBaseName`.`forum_posts` (idDiscussion, idUser, content) VALUES (?, ?, ?)";
-    $stmtPost = mysqli_prepare($GLOBALS['ligacao'], $sqlPost);
-    mysqli_stmt_bind_param($stmtPost, "iis", $idDiscussion, $idUser, $content);
-    mysqli_stmt_execute($stmtPost);
-
-    $sqlUpdate  = "UPDATE `$dataBaseName`.`forum_discussions` SET last_posted_at = NOW() WHERE idDiscussion = ?";
-    $stmtUpdate = mysqli_prepare($GLOBALS['ligacao'], $sqlUpdate);
-    mysqli_stmt_bind_param($stmtUpdate, "i", $idDiscussion);
-    mysqli_stmt_execute($stmtUpdate);
-
-    mysqli_commit($GLOBALS['ligacao']);
-    echo json_encode(['success' => true]);
-} catch (Exception $e) {
-    mysqli_rollback($GLOBALS['ligacao']);
-    echo json_encode(['success' => false, 'error' => 'Falha ao publicar comentário']);
+if ($idDiscussion <= 0 || empty($content)) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Dados inválidos ou conteúdo vazio.']);
+    exit;
 }
-dbDisconnect();
+
+// Chamar função da lib que insere o post e faz o "bump" no tópico
+$success = createForumPost($idUser, $idDiscussion, $content);
+
+if ($success) {
+    echo json_encode(['status' => 'success', 'message' => 'Resposta publicada com sucesso!']);
+} else {
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Erro ao publicar a resposta.']);
+}

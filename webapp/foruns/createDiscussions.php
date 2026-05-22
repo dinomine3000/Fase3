@@ -1,53 +1,46 @@
 <?php
+// createDiscussions.php
+include_once("../../Lib/lib.php");
+
 header('Content-Type: application/json; charset=utf-8');
-require_once("../../Lib/lib.php");
-require_once("../../Lib/db.php");
 
-if (!isset($_SESSION)) session_start();
-
-// Utilizador autenticado via sessão
-$idUser = isset($_SESSION['idUser']) ? (int)$_SESSION['idUser'] : null;
-
-if (!$idUser) {
-    echo json_encode(['success' => false, 'error' => 'Utilizador não autenticado. Faça login.']);
+// Bloquear se não for um pedido POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['status' => 'error', 'message' => 'Método não permitido.']);
     exit;
 }
 
-$title     = $_POST['title']             ?? null;
-$content   = $_POST['content']           ?? null;
-$primary   = $_POST['primaryCategory']   ?? null;
-$secondary = $_POST['secondaryCategory'] ?? null;
-
-if (!$title || !$content || !$primary) {
-    echo json_encode(['success' => false, 'error' => 'Dados incompletos']);
+// 1. Verificar se o utilizador está autenticado através da função da lib
+$idUser = getActiveUserIdFromAuth();
+if ($idUser === 0) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Utilizador não autenticado.']);
     exit;
 }
 
-dbConnect(ConfigFile);
-$dataBaseName = $GLOBALS['configDataBase']->db;
-mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+// 2. Capturar e validar os dados enviados pelo formulário (POST)
+$title = trim($_POST['title'] ?? '');
+$content = trim($_POST['content'] ?? '');
+$primaryCategory = trim($_POST['primaryCategory'] ?? '');
+$secondaryCategory = trim($_POST['secondaryCategory'] ?? '');
 
-$slug           = strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $title)));
-$secondaryParam = !empty($secondary) ? $secondary : null;
-
-mysqli_begin_transaction($GLOBALS['ligacao']);
-try {
-    $sqlDisc  = "INSERT INTO `$dataBaseName`.`forum_discussions` (title, slug, idUser, primaryCategory, secondaryCategory) VALUES (?, ?, ?, ?, ?)";
-    $stmtDisc = mysqli_prepare($GLOBALS['ligacao'], $sqlDisc);
-    mysqli_stmt_bind_param($stmtDisc, "ssiss", $title, $slug, $idUser, $primary, $secondaryParam);
-    mysqli_stmt_execute($stmtDisc);
-
-    $idDiscussion = mysqli_insert_id($GLOBALS['ligacao']);
-
-    $sqlPost  = "INSERT INTO `$dataBaseName`.`forum_posts` (idDiscussion, idUser, content) VALUES (?, ?, ?)";
-    $stmtPost = mysqli_prepare($GLOBALS['ligacao'], $sqlPost);
-    mysqli_stmt_bind_param($stmtPost, "iis", $idDiscussion, $idUser, $content);
-    mysqli_stmt_execute($stmtPost);
-
-    mysqli_commit($GLOBALS['ligacao']);
-    echo json_encode(['success' => true, 'idDiscussion' => $idDiscussion]);
-} catch (Exception $e) {
-    mysqli_rollback($GLOBALS['ligacao']);
-    echo json_encode(['success' => false, 'error' => 'Erro interno ao processar base de dados']);
+if (empty($title) || empty($content) || empty($primaryCategory)) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Preencha todos os campos obrigatórios (Título, Conteúdo e Categoria).']);
+    exit;
 }
-dbDisconnect();
+
+// 3. Executar a criação através da lib
+$idDiscussion = createForumDiscussion($idUser, $title, $content, $primaryCategory, !empty($secondaryCategory) ? $secondaryCategory : null);
+
+if ($idDiscussion) {
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Discussão criada com sucesso!',
+        'idDiscussion' => $idDiscussion
+    ]);
+} else {
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Erro interno ao criar a discussão.']);
+}

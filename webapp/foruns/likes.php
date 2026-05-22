@@ -1,47 +1,40 @@
 <?php
+// like.php
+include_once("../../Lib/lib.php");
+
 header('Content-Type: application/json; charset=utf-8');
-require_once("../../Lib/lib.php");
-require_once("../../Lib/db.php");
 
-if (!isset($_SESSION)) session_start();
-
-$idUser = isset($_SESSION['idUser']) ? (int)$_SESSION['idUser'] : null;
-
-if (!$idUser) {
-    echo json_encode(['success' => false, 'error' => 'Utilizador não autenticado. Faça login.']);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['status' => 'error', 'message' => 'Método não permitido.']);
     exit;
 }
 
-$idPost = $_POST['idPost'] ?? null;
-
-if (!$idPost) {
-    echo json_encode(['success' => false, 'error' => 'Dados em falta']);
+$idUser = getActiveUserIdFromAuth();
+if ($idUser === 0) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Precisa de estar autenticado para fazer Like.']);
     exit;
 }
 
-dbConnect(ConfigFile);
-$dataBaseName = $GLOBALS['configDataBase']->db;
-mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+$idPost = (int)($_POST['idPost'] ?? 0);
 
-$sqlCheck  = "SELECT 1 FROM `$dataBaseName`.`forum_likes` WHERE idPost = ? AND idUser = ?";
-$stmtCheck = mysqli_prepare($GLOBALS['ligacao'], $sqlCheck);
-mysqli_stmt_bind_param($stmtCheck, "ii", $idPost, $idUser);
-mysqli_stmt_execute($stmtCheck);
-mysqli_stmt_store_result($stmtCheck);
+if ($idPost <= 0) {
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'ID do post inválido.']);
+    exit;
+}
 
-if (mysqli_stmt_num_rows($stmtCheck) > 0) {
-    $sqlDel  = "DELETE FROM `$dataBaseName`.`forum_likes` WHERE idPost = ? AND idUser = ?";
-    $stmtDel = mysqli_prepare($GLOBALS['ligacao'], $sqlDel);
-    mysqli_stmt_bind_param($stmtDel, "ii", $idPost, $idUser);
-    mysqli_stmt_execute($stmtDel);
-    echo json_encode(['success' => true, 'action' => 'unliked']);
+// Executa o toggle na lib ('liked', 'unliked' ou false)
+$action = toggleForumLike($idUser, $idPost);
+
+if ($action) {
+    echo json_encode([
+        'status' => 'success',
+        'action' => $action, // devolve 'liked' ou 'unliked' para o JS atualizar o botão dinamicamente
+        'message' => $action === 'liked' ? 'Gosto adicionado.' : 'Gosto removido.'
+    ]);
 } else {
-    $sqlIns  = "INSERT INTO `$dataBaseName`.`forum_likes` (idPost, idUser) VALUES (?, ?)";
-    $stmtIns = mysqli_prepare($GLOBALS['ligacao'], $sqlIns);
-    mysqli_stmt_bind_param($stmtIns, "ii", $idPost, $idUser);
-    mysqli_stmt_execute($stmtIns);
-    echo json_encode(['success' => true, 'action' => 'liked']);
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Erro ao processar a ação de Like.']);
 }
-
-dbDisconnect();
-

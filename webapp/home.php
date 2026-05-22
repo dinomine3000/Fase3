@@ -41,6 +41,10 @@ $isLoggedIn = isset($_SESSION['id']);
         <button type="submit">View Categories</button>
     </form>
     <br>
+    <form action="foruns/forum.php" method="GET">
+        <button type="submit">Forum</button>
+    </form>
+    <br>
 
     <?php if ($isLoggedIn): ?>
         <form action="auth/logout.php" method="POST">

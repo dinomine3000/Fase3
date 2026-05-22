@@ -1,46 +1,34 @@
 <?php
+// getDiscussions.php
+
+// 1. Incluir o ficheiro de configuração e a biblioteca onde guardaste as funções do fórum
+include_once("../../Lib/lib.php");
+
+// 2. Definir o cabeçalho para indicar ao navegador/frontend que a resposta será um JSON
 header('Content-Type: application/json; charset=utf-8');
 
-require_once("../../Lib/lib.php");
-require_once("../../Lib/db.php");
+try {
+    // 3. Capturar os filtros opcionais passados via URL (Query String)
+    // Exemplo: getDiscussions.php?primaryCategory=Desporto&secondaryCategory=Futebol
+    $primaryCategory = isset($_GET['primaryCategory']) && $_GET['primaryCategory'] !== '' ? $_GET['primaryCategory'] : null;
+    $secondaryCategory = isset($_GET['secondaryCategory']) && $_GET['secondaryCategory'] !== '' ? $_GET['secondaryCategory'] : null;
 
-$primary   = isset($_GET['primary'])   ? $_GET['primary']   : null;
-$secondary = isset($_GET['secondary']) ? $_GET['secondary'] : null;
+    // 4. Chamar a função da biblioteca que trata de toda a lógica de BD
+    $discussions = getForumDiscussions($primaryCategory, $secondaryCategory);
 
-dbConnect(ConfigFile);
-$dataBaseName = $GLOBALS['configDataBase']->db;
-mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+    // 5. Responder com sucesso e enviar os dados estruturados
+    echo json_encode([
+        'status' => 'success',
+        'count'  => count($discussions),
+        'data'   => $discussions
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
-$sql = "SELECT d.*, u.name as author,
-        (SELECT COUNT(*) FROM `$dataBaseName`.`forum_posts` p WHERE p.idDiscussion = d.idDiscussion) as total_replies
-        FROM `$dataBaseName`.`forum_discussions` d
-        JOIN `$dataBaseName`.`auth-basic` u ON d.idUser = u.idUser";
-
-$types  = "";
-$params = [];
-
-if (!empty($primary)) {
-    $sql .= " WHERE d.primaryCategory = ?";
-    $types .= "s";
-    $params[] = $primary;
-
-    if (!empty($secondary)) {
-        $sql .= " AND d.secondaryCategory = ?";
-        $types .= "s";
-        $params[] = $secondary;
-    }
+} catch (Exception $e) {
+    // Caso ocorra algum erro inesperado
+    http_response_code(500);
+    echo json_encode([
+        'status'  => 'error',
+        'message' => 'Erro ao carregar as discussões do fórum.'
+    ]);
 }
-
-$sql .= " ORDER BY d.isSticky DESC, d.last_posted_at DESC";
-
-$stmt = mysqli_prepare($GLOBALS['ligacao'], $sql);
-if (!empty($types)) {
-    mysqli_stmt_bind_param($stmt, $types, ...$params);
-}
-mysqli_stmt_execute($stmt);
-$result      = mysqli_stmt_get_result($stmt);
-$discussions = mysqli_fetch_all($result, MYSQLI_ASSOC);
-
-echo json_encode($discussions);
-
-dbDisconnect();
+exit;
