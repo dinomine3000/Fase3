@@ -28,8 +28,27 @@ $isLoggedIn = isset($_SESSION['id']);
     }
     ?>
 
+
     <?php 
-    if(isset($name) && authorizeUserByLevel($name, "organizer")):
+    if(isset($name) && authorizeUserByLevel($name, "user")):
+    ?>
+    <form action="files/list.php" method="GET">
+        <button type="submit">View Files</button>
+    </form>
+    <br>
+    <?php endif; ?>
+
+    <?php 
+    if(isset($name) && authorizeUserByLevel($name, 'organizer')):
+    ?>
+    <form action="wiki/manage_categories.php" method="GET">
+        <button type="submit">Create Categories</button>
+    </form>
+    <br>
+    <?php endif; ?>
+
+    <?php 
+    if(isset($name) && authorizeUserByLevel($name, "editor")):
     ?>
     <form action="wiki/create.php" method="GET">
         <button type="submit">Create a Page</button>
@@ -56,5 +75,15 @@ $isLoggedIn = isset($_SESSION['id']);
     </form>
     <?php endif; ?>
 
+    <?php 
+    if (authorizeUserByLevel($name, 'organizer')): 
+        $pendingCount = getPendingProposalsCount();
+    ?>
+        <div>
+            <h3>Page Proposals Management</h3>
+            <p>There are currently <strong><?php echo $pendingCount; ?></strong> changes waiting to be managed.</p>
+            <a href="wiki/proposals.php">View Moderation Queue</a>
+        </div>
+    <?php endif; ?>
 </body>
 </html>

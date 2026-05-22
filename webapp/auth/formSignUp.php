@@ -72,6 +72,8 @@ loadConfigurationDataBase(constant("ConfigFile"));
                     echo "<p> E-mail already exists</p>";
                 } elseif($error === "badRepeat"){
                     echo "<p> Password repeat is wrong</p>";
+                } elseif($error === "invalid"){
+                    echo "<p> Invalid values inserted somehow</p>";
                 }
                 else {
                     echo "<p> Bad field: $error</p>";

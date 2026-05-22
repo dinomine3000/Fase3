@@ -518,6 +518,45 @@ function getCategoryList($type, $filterPrimary = "") {
     dbDisconnect();
     return $categories;
 }
+function createPrimaryCategory($categoryName) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $categoryName = mysqli_real_escape_string($GLOBALS['ligacao'], trim($categoryName));
+    if (empty($categoryName)) {
+        dbDisconnect();
+        return false;
+    }
+
+    $query = "INSERT INTO `$dataBaseName`.`category-primary` (`primaryCategory`) VALUES ('$categoryName')";
+    $success = mysqli_query($GLOBALS['ligacao'], $query);
+    
+    dbDisconnect();
+    return $success;
+}
+
+function createSecondaryCategory($primaryCategory, $secondaryCategory) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $primaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryCategory);
+    $secondaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], trim($secondaryCategory));
+
+    if (empty($primaryCategory) || empty($secondaryCategory)) {
+        dbDisconnect();
+        return false;
+    }
+
+    $query = "INSERT INTO `$dataBaseName`.`category-secondary` (`primaryCategory`, `secondaryCategory`) 
+              VALUES ('$primaryCategory', '$secondaryCategory')";
+    $success = mysqli_query($GLOBALS['ligacao'], $query);
+    
+    dbDisconnect();
+    return $success;
+}
+
 function checkUserRole($idUser, $roleName) {
     $hasRole = false;
     dbConnect(ConfigFile);
@@ -657,7 +696,7 @@ function getPageMetaData($pageTitle) {
 
     $pageTitle = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
 
-    $query = "SELECT `primaryCategory`, `secondaryCategory` FROM `$dataBaseName`.`page` 
+    $query = "SELECT `primaryCategory`, `secondaryCategory`, `visibility` FROM `$dataBaseName`.`page` 
               WHERE `pageTitle`='$pageTitle'";
 
     $result = mysqli_query($GLOBALS['ligacao'], $query);
@@ -681,7 +720,8 @@ function getPagesList($primaryCategory, $secondaryCategory) {
     $primaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryCategory);
     $secondaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
 
-    $query = "SELECT `pageTitle` FROM `$dataBaseName`.`page` 
+    // Added roleLevelVisibility to the SELECT statement
+    $query = "SELECT `pageTitle`, `visibility` FROM `$dataBaseName`.`page` 
               WHERE `primaryCategory`='$primaryCategory' 
               AND `secondaryCategory`='$secondaryCategory' 
               ORDER BY `pageTitle` ASC";
@@ -691,7 +731,11 @@ function getPagesList($primaryCategory, $secondaryCategory) {
 
     if ($result != false) {
         while ($row = mysqli_fetch_assoc($result)) {
-            $pages[] = $row['pageTitle'];
+            // Stores both the title and the visibility level as an associative array element
+            $pages[] = [
+                'pageTitle'           => $row['pageTitle'],
+                'visibility' => (int)$row['visibility']
+            ];
         }
         mysqli_free_result($result);
     }
@@ -765,7 +809,7 @@ function getUserRoleFriendlyName($username) {
     dbDisconnect();
     return $friendlyName;
 }
-function processPageChange($username, $pageTitle, $newContent) {
+function processPageChange($username, $pageTitle, $newContent, $visibility) {
     // 1. Check role authorization level using your existing function
     $isEditorOrHigher = authorizeUserByLevel($username, 'editor');
 
@@ -777,6 +821,7 @@ function processPageChange($username, $pageTitle, $newContent) {
     $username   = mysqli_real_escape_string($GLOBALS['ligacao'], $username);
     $pageTitle  = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
     $newContent = mysqli_real_escape_string($GLOBALS['ligacao'], $newContent);
+    $newVisibility = mysqli_real_escape_string($GLOBALS['ligacao'], $visibility);
 
     // 2. Fetch user metadata needed for contributions score and fallback tracking
     $userQuery = "SELECT `idUser`, `contributions` 
@@ -803,7 +848,7 @@ function processPageChange($username, $pageTitle, $newContent) {
     if ($isEditorOrHigher || $hasHighContributions) {
         // Direct Apply: Update live production document text immediately
         $updateQuery = "UPDATE `$dataBaseName`.`page` 
-                        SET `content` = '$newContent' 
+                        SET `content` = '$newContent', `visibility` = '$newVisibility' 
                         WHERE `pageTitle` = '$pageTitle'";
         $success = mysqli_query($GLOBALS['ligacao'], $updateQuery);
         
@@ -815,6 +860,169 @@ function processPageChange($username, $pageTitle, $newContent) {
         $insertQuery = "INSERT INTO `$dataBaseName`.`page-changes` (`pageTitle`, `editorId`, `newContent`) 
                         VALUES ('$pageTitle', $idUser, '$newContent')";
         $success = mysqli_query($GLOBALS['ligacao'], $insertQuery);
+    }
+
+    dbDisconnect();
+    return $success;
+}
+
+function getAvailableRolesUpToUser($username) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $username = mysqli_real_escape_string($GLOBALS['ligacao'], $username);
+
+    $userQuery = "SELECT r.`roleLevel` 
+                  FROM `$dataBaseName`.`auth-basic` u
+                  JOIN `$dataBaseName`.`auth-roles` r ON u.`idRole` = r.`idRole`
+                  WHERE u.`name` = '$username' 
+                  LIMIT 1";
+                  
+    $userResult = mysqli_query($GLOBALS['ligacao'], $userQuery);
+    
+    if (!$userResult || mysqli_num_rows($userResult) === 0) {
+        if ($userResult) mysqli_free_result($userResult);
+        dbDisconnect();
+        return []; 
+    }
+
+    $userRow = mysqli_fetch_assoc($userResult);
+    $userMaxLevel = (int)$userRow['roleLevel'];
+    mysqli_free_result($userResult);
+
+    // 3. Fetch roleLevel and friendlyName columns from auth-roles up to the user's level (inclusive)
+    $rolesQuery = "SELECT `roleLevel`, `friendlyName` 
+                   FROM `$dataBaseName`.`auth-roles` 
+                   WHERE `roleLevel` <= $userMaxLevel 
+                   ORDER BY `roleLevel` ASC";
+
+    $rolesResult = mysqli_query($GLOBALS['ligacao'], $rolesQuery);
+    $rolesList = [];
+
+    if ($rolesResult) {
+        while ($row = mysqli_fetch_assoc($rolesResult)) {
+            $rolesList[] = [
+                'roleLevel'    => (int)$row['roleLevel'],
+                'friendlyName' => $row['friendlyName']
+            ];
+        }
+        mysqli_free_result($rolesResult);
+    }
+
+    dbDisconnect();
+    return $rolesList;
+}
+function authorizeUserByNumericLevel($username, $requiredLevel) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    if(!isset($username)) return $requiredLevel == 0;
+
+    $username = mysqli_real_escape_string($GLOBALS['ligacao'], $username);
+    $requiredLevel = (int)$requiredLevel;
+
+    $userQuery = "SELECT r.`roleLevel` 
+                  FROM `$dataBaseName`.`auth-basic` u
+                  JOIN `$dataBaseName`.`auth-roles` r ON u.`idRole` = r.`idRole`
+                  WHERE u.`name` = '$username' 
+                  LIMIT 1";
+                  
+    $userResult = mysqli_query($GLOBALS['ligacao'], $userQuery);
+    
+    $userLevel = 0; 
+    if ($userResult && mysqli_num_rows($userResult) > 0) {
+        $userRow = mysqli_fetch_assoc($userResult);
+        $userLevel = (int)$userRow['roleLevel'];
+        mysqli_free_result($userResult);
+    }
+
+    dbDisconnect();
+
+    return ($userLevel >= $requiredLevel);
+}
+function getPendingProposalsCount() {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $query = "SELECT COUNT(*) as total FROM `$dataBaseName`.`page-changes`";
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+    
+    $count = 0;
+    if ($result) {
+        $row = mysqli_fetch_assoc($result);
+        $count = (int)$row['total'];
+        mysqli_free_result($result);
+    }
+    dbDisconnect();
+    return $count;
+}
+
+function getAllProposals() {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $query = "SELECT pc.`changeId`, pc.`pageTitle`, pc.`newContent`, u.`name` as editorName, p.`content` as currentContent 
+              FROM `$dataBaseName`.`page-changes` pc
+              LEFT JOIN `$dataBaseName`.`auth-basic` u ON pc.`editorId` = u.`idUser`
+              LEFT JOIN `$dataBaseName`.`page` p ON pc.`pageTitle` = p.`pageTitle`
+              ORDER BY pc.`changeId` ASC";
+
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+    $proposals = [];
+
+    if ($result) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $proposals[] = $row;
+        }
+        mysqli_free_result($result);
+    }
+    dbDisconnect();
+    return $proposals;
+}
+
+function moderateProposal($changeId, $action) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    $changeId = (int)$changeId;
+    $success = false;
+
+    // 1. Fetch proposal details first
+    $query = "SELECT `pageTitle`, `editorId`, `newContent` FROM `$dataBaseName`.`page-changes` WHERE `changeId` = $changeId LIMIT 1";
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+
+    if ($result && mysqli_num_rows($result) > 0) {
+        $proposal = mysqli_fetch_assoc($result);
+        mysqli_free_result($result);
+
+        $pageTitle  = mysqli_real_escape_string($GLOBALS['ligacao'], $proposal['pageTitle']);
+        $editorId   = (int)$proposal['editorId'];
+        $newContent = mysqli_real_escape_string($GLOBALS['ligacao'], $proposal['newContent']);
+
+        if ($action === 'accept') {
+            // Update the live production page content
+            $updatePage = "UPDATE `$dataBaseName`.`page` SET `content` = '$newContent' WHERE `pageTitle` = '$pageTitle'";
+            if (mysqli_query($GLOBALS['ligacao'], $updatePage)) {
+                // Reward the contributor with a point
+                mysqli_query($GLOBALS['ligacao'], "UPDATE `$dataBaseName`.`auth-basic` SET `contributions` = `contributions` + 1 WHERE `idUser` = $editorId");
+                $success = true;
+            }
+        } else {
+            // Rejection requires no production updates
+            $success = true;
+        }
+
+        // 2. Remove from moderation log regardless of action outcome
+        if ($success) {
+            mysqli_query($GLOBALS['ligacao'], "DELETE FROM `$dataBaseName`.`page-changes` WHERE `changeId` = $changeId");
+        }
+    } else if ($result) {
+        mysqli_free_result($result);
     }
 
     dbDisconnect();

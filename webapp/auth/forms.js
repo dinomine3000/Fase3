@@ -4,7 +4,6 @@
  */
 //copiados da AP1
 var emailFilter = /^[^@]+@[^@]+\.[^@]+$/;
-var nameFilter = /^[A-Za-z]{2,}$/;
 var eliasFilter = /^[A-Za-z0-9\.]{2,}/;
 var passFilter = /[A-Za-z0-9\.\-\#\*\,]{10,}/;
 
@@ -12,6 +11,7 @@ function FormSignupValidator(theForm) {
     //mail, username e pass sao required
   var username = theForm.username.value.trim();
   var pass = theForm.password.value.trim();
+  var pass2 = theForm.password_2.value.trim();
   var mail = theForm.email.value.trim();
   
   if ( mail === "" || !emailFilter.test( mail ) ) {
@@ -29,6 +29,12 @@ function FormSignupValidator(theForm) {
   if ( pass === "" || !passFilter.test( pass ) ) {
     alert('Please provide a valid password');
     theForm.email.focus();
+    return false;
+  }
+  
+  if ( pass !== pass2 ) {
+    alert('Passwords don\'t match');
+    theForm.password_2.focus();
     return false;
   }
   

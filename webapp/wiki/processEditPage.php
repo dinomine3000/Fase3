@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $title      = filter_input(INPUT_POST, 'pageTitle', FILTER_UNSAFE_RAW);
 $newContent = filter_input(INPUT_POST, 'content', FILTER_UNSAFE_RAW);
+$visibility = filter_input(INPUT_POST, 'visibility', FILTER_UNSAFE_RAW);
 
 if (empty($title) || $newContent === null) {
     echo "Missing required page components.";
@@ -28,7 +29,7 @@ if (empty($title) || $newContent === null) {
 }
 
 // Call your custom dual-route storage function
-$success = processPageChange($_SESSION['username'], $title, $newContent);
+$success = processPageChange($_SESSION['username'], $title, $newContent, $visibility);
 
 ?>
 <!DOCTYPE html>

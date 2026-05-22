@@ -23,7 +23,16 @@ if ( !isset( $_SESSION ) ) {
 $title     = filter_input($_INPUT_METHOD, 'pageTitle', FILTER_UNSAFE_RAW);
 $secondary = filter_input($_INPUT_METHOD, 'secondaryCategory', FILTER_UNSAFE_RAW);
 $primary   = filter_input($_INPUT_METHOD, 'primaryCategory', FILTER_UNSAFE_RAW);
+$name = isset($_SESSION['username']) ? $_SESSION['username'] : null;
 
+if (!empty($title)): 
+$content = readWikiPage($title);
+$meta = getPageMetaData($title);
+$Parsedown = new ExtendedParsedown();
+if (!authorizeUserByNumericLevel($name, $meta['visibility'])):
+    header("Location: ?");
+    exit();
+endif;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -35,10 +44,6 @@ $primary   = filter_input($_INPUT_METHOD, 'primaryCategory', FILTER_UNSAFE_RAW);
 
     <?php 
     // STEP 4: Render specific page content (?pageTitle=XYZ)
-    if (!empty($title)): 
-        $content = readWikiPage($title);
-        $meta = getPageMetaData($title);
-        $Parsedown = new ExtendedParsedown();
     ?>
     <!-- Back button extracts parent components from DB, keeping the current URL clean -->
         <?php if ($meta): ?>
@@ -47,7 +52,7 @@ $primary   = filter_input($_INPUT_METHOD, 'primaryCategory', FILTER_UNSAFE_RAW);
             <a href="?">← Back Home</a>
         <?php endif; ?>
         <!-- edit button -->
-        <?php if (isset($_SESSION['username']) && authorizeUserByLevel($_SESSION['username'], 'user')): ?>
+        <?php if (isset($name) && authorizeUserByLevel($name, 'user')): ?>
             <br>
             <a href="editPage.php?pageTitle=<?php echo $title ?>"> Edit Page</a>
         <?php endif; ?>
@@ -68,12 +73,18 @@ $primary   = filter_input($_INPUT_METHOD, 'primaryCategory', FILTER_UNSAFE_RAW);
             <p>No pages found in this category.</p>
         <?php else: ?>
             <ul>
-                <?php foreach ($pages as $pTitle): ?>
-                    <li>
-                        <a href="?pageTitle=<?php echo $pTitle; ?>">
-                            <?php echo $pTitle; ?>
-                        </a>
-                    </li>
+
+                <?php foreach ($pages as $page): ?>
+                    <?php 
+                    $requiredLevel = (int)$page['visibility'];
+                    if (authorizeUserByNumericLevel($name, $requiredLevel)): 
+                    ?>
+                        <li>
+                            <a href="?pageTitle=<?php echo urlencode($page['pageTitle']); ?>">
+                                <?php echo htmlspecialchars($page['pageTitle']); ?>
+                            </a>
+                        </li>
+                    <?php endif; ?>
                 <?php endforeach; ?>
             </ul>
         <?php endif; ?>

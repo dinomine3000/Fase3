@@ -4,8 +4,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Scripting/EmptyPHP.php to edit this template
  */
+
 require_once( "../../Lib/lib.php" );
 require_once( "../../Lib/db.php" );
+
+$emailFilter = '/^[^@]+@[^@]+\.[^@]+$/';
+$eliasFilter = '/^[A-Za-z0-9.]{2,}/';
+$passFilter  = '/[A-Za-z0-9.\-#*,]{10,}/';
 
 $flags[] = FILTER_NULL_ON_FAILURE;
 
@@ -55,8 +60,12 @@ else {
 
     $userExists = existUserField("name", $username, "basic");
     $emailExists = existUserField("email", $email, "basic");
-    
-    if ( $userExists ) {
+    if (!preg_match($eliasFilter, $username) || !preg_match($emailFilter, $email) || !preg_match($passFilter, $password)) {
+        echo "<h1>Error - Invalid format</h1>";
+        $nextUrl = "formSignUp.php";
+        $linkargs = "?error=invalid";
+    }
+    else if ( $userExists ) {
         echo "<h1>Error - Account name already exists</h1>";
         $nextUrl = "formSignUp.php";
         $linkargs = "?error=badName";

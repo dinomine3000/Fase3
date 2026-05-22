@@ -60,6 +60,33 @@ $willAutoPublish = authorizeUserByLevel($name, 'editor');
             <label for="content" style="display:block; font-weight:bold; margin-bottom:5px;">Page Content (Markdown Syntax)</label>
             <textarea id="content" name="content" rows="20" style="width: 100%; font-family: monospace;" required><?php echo htmlspecialchars($content); ?></textarea>
         </div>
+        <?php
+        //visibility dropdown
+        
+        if(isset($name)){
+            $allowedRoles = getAvailableRolesUpToUser($name);
+        } else {
+            $allowedRoles = array();
+        }
+
+        $meta = getPageMetaData($title);
+        $currentPageLevel = isset($meta['visibility']) ? (int)$meta['visibility'] : 0; 
+        ?>
+
+        <div class="form-group" style="margin-bottom: 15px;">
+            <label自动 for="pageVisibility" style="display: block; font-weight: bold; margin-bottom: 5px;">Minimum Required Role to View Page</label>
+            <select id="visibility" name="visibility" required style="width: 100%; padding: 6px;">
+                <?php if (empty($allowedRoles)): ?>
+                    <option value="0" selected>guest (Default Baseline)</option>
+                <?php else: ?>
+                    <?php foreach ($allowedRoles as $role): ?>
+                        <option value="<?php echo $role['roleLevel'];?>" <?php echo ($role['roleLevel'] === $currentPageLevel) ? 'selected="selected"' : ''; ?>>
+                            <?php echo $role['roleLevel'] . " - " . htmlspecialchars($role['friendlyName']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </select>
+        </div>
 
         <button type="submit">Save Changes</button>
     </form>
