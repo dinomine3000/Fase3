@@ -107,7 +107,7 @@ $total = count($catResults) + count($subcatResults) + count($artResults);
 <header class="site-header">
   <div class="container-lg py-0">
     <div class="d-flex align-items-center gap-3" style="height:56px">
-      <a class="logo" href="wiki.php">Portal <span class="logo-wiki">Wiki</span></a>
+      <a class="logo" href="../home.php">Portal <span class="logo-wiki">Wiki</span></a>
       <div class="search-wrap flex-grow-1">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="text" id="headerSearch" placeholder="Search wiki…" value="<?php echo htmlspecialchars($q); ?>" onkeydown="if(event.key==='Enter'&&this.value.trim())location.href='search.php?q='+encodeURIComponent(this.value.trim())">
@@ -116,13 +116,13 @@ $total = count($catResults) + count($subcatResults) + count($artResults);
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
-      <a href="../forum/forum.php" class="hbtn primary">
+      <a href="../foruns/forum.php" class="hbtn primary" style="text-decoration:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Forum
       </a>
-      <a href="../wiki/login.php" class="hbtn">
+      <a href="../auth/formLogin.php" class="hbtn" style="text-decoration:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Account
+        Login
       </a>
     </div>
   </div>
@@ -159,7 +159,7 @@ $total = count($catResults) + count($subcatResults) + count($artResults);
     </div>
     <div class="d-flex flex-column gap-1 mb-4">
       <?php foreach ($catResults as $c): ?>
-      <a class="result-bar" href="category.php?id=<?php echo urlencode($c['id']); ?>">
+      <a class="result-bar" href="viewPage.php?primaryCategory=<?php echo urlencode($c['name']); ?>">
         <span class="res-chip">Category</span>
         <div class="art-body">
           <div class="art-title"><?php echo htmlspecialchars($c['name']); ?></div>
@@ -179,7 +179,7 @@ $total = count($catResults) + count($subcatResults) + count($artResults);
     </div>
     <div class="d-flex flex-column gap-1 mb-4">
       <?php foreach ($subcatResults as $s): ?>
-      <a class="result-bar" href="subcategory.php?id=<?php echo urlencode($s['id']); ?>">
+      <a class="result-bar" href="viewPage.php?primaryCategory=<?php echo urlencode($s['cat_name']); ?>&secondaryCategory=<?php echo urlencode($s['name']); ?>">
         <span class="res-chip">Subcategory</span>
         <div class="art-body">
           <div class="art-title"><?php echo htmlspecialchars($s['name']); ?></div>
