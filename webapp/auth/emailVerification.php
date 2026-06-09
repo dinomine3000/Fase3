@@ -8,6 +8,7 @@
 require_once( "../../Lib/lib.php" );
 require_once( "../../Lib/db.php" );
 require_once( "../../Lib/lib-mail-v2.php" );
+require_once( "../../Lib/wikiLib.php" );
 
 ini_set('display_errors', 'On');
 error_reporting(E_ALL);

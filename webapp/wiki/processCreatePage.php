@@ -1,5 +1,6 @@
 <?php
 include("../../Lib/lib.php");
+require_once( "../../Lib/wikiLib.php" );
     $method = $_SERVER[ 'REQUEST_METHOD' ];
   
     if ( $method=='POST') {

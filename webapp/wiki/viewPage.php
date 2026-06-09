@@ -4,6 +4,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 include_once("../../Lib/lib.php");
 include_once("../../Lib/db.php");
+require_once( "../../Lib/wikiLib.php" );
 include_once("../../Lib/extendedParsedown.php");
 $method = $_SERVER['REQUEST_METHOD'];
 

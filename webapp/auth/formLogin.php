@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <?php
-require_once("../../Lib/lib.php");
+require_once( "../../Lib/lib.php" );
+require_once( "../../Lib/wikiLib.php" );
 
 $flags[] = FILTER_NULL_ON_FAILURE;
+
+$serverName = filter_input( INPUT_SERVER, 'SERVER_NAME', FILTER_SANITIZE_STRING, $flags);
 $name = webAppName();
 
 if (!isset($_SESSION)) {

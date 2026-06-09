@@ -100,19 +100,50 @@ $shades = ['s1','s2','s3','s4','s5'];
       $shade   = $shades[$i % 5];
       $catName = htmlspecialchars($cat['primaryCategory']);
     ?>
-    <div class="col">
-      <a href="wiki/viewPage.php?primaryCategory=<?php echo urlencode($cat['primaryCategory']); ?>" style="text-decoration:none;display:block">
-        <div class="cat-card">
-          <div class="cat-img <?php echo $shade; ?>">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--cat-icon)" stroke-width="1.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-          </div>
-          <div class="cat-body">
-            <div class="cat-label"><?php echo $catName; ?></div>
-          </div>
+    <form action="wiki/manage_categories.php" method="GET">
+        <button type="submit">Create Categories</button>
+    </form>
+    <br>
+
+    <?php 
+    if(isset($name) && authorizeUserByLevel($name, "editor")):
+    ?>
+    <form action="wiki/create.php" method="GET">
+        <button type="submit">Create a Page</button>
+    </form>
+    <br>
+    <?php endif; ?>
+
+    <form action="wiki/viewPage.php" method="GET">
+        <button type="submit">View Categories</button>
+    </form>
+    <br>
+    <form action="foruns/forum.php" method="GET">
+        <button type="submit">Forum</button>
+    </form>
+    <br>
+
+    <?php if ($isLoggedIn): ?>
+        <form action="auth/logout.php" method="POST">
+            <button type="submit">Logout</button>
+        </form>
+    <?php else: ?>
+    <form action="auth/formLogin.php" method="GET">
+        <button type="submit">Login</button>
+    </form>
+    <?php endif; ?>
+
+    <?php 
+    if (isset($name) && authorizeUserByLevel($name, 'organizer')): 
+        $pendingCount = getPendingProposalsCount();
+    ?>
+        <div>
+            <h3>Page Proposals Management</h3>
+            <p>There are currently <strong><?php echo $pendingCount; ?></strong> changes waiting to be managed.</p>
+            <a href="wiki/proposals.php">View Moderation Queue</a>
         </div>
       </a>
     </div>
-    <?php endforeach; ?>
   </div>
   <?php endif; ?>
 

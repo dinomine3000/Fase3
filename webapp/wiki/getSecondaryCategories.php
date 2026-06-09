@@ -5,6 +5,7 @@ ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
 include_once("../../Lib/lib.php");
+require_once( "../../Lib/wikiLib.php" );
 
 $response = array();
 

@@ -1,5 +1,6 @@
 <?php
 require_once("../../Lib/db.php");
+require_once( "../../Lib/wikiLib.php" );
 loadConfigurationDataBase(constant("ConfigFile"));
 
 $flags = [];

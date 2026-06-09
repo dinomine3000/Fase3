@@ -1,6 +1,7 @@
 <?php
     require_once( "../../Lib/lib.php" );
     require_once( "../../Lib/db.php" );
+require_once( "../../Lib/wikiLib.php" );
 
 
     // TODO validate input data

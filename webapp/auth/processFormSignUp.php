@@ -7,6 +7,7 @@
 
 require_once( "../../Lib/lib.php" );
 require_once( "../../Lib/db.php" );
+require_once( "../../Lib/wikiLib.php" );
 
 $emailFilter = '/^[^@]+@[^@]+\.[^@]+$/';
 $eliasFilter = '/^[A-Za-z0-9.]{2,}/';

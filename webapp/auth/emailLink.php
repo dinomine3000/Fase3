@@ -6,6 +6,7 @@
  */
 require_once( "../../Lib/lib.php" );
 require_once( "../../Lib/db.php" );
+require_once( "../../Lib/wikiLib.php" );
 
 $flags[] = FILTER_NULL_ON_FAILURE;
 
