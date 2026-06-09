@@ -1,5 +1,60 @@
 <?php 
+function getResultsMatching($testString, $desiredColumn = '', $tableName = 'auth-basic', $columnName = 'name', $maxResults = 5) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+    
+    $escapedString = mysqli_real_escape_string($GLOBALS['ligacao'], $testString);
+    $escapedTable = mysqli_real_escape_string($GLOBALS['ligacao'], $tableName);
+    $escapedColumn = mysqli_real_escape_string($GLOBALS['ligacao'], $columnName);
+    $maxResults = (int)$maxResults;
 
+    $query = "SELECT " . ($desiredColumn === '' ? '*' : $desiredColumn) . " FROM `$dataBaseName`.`$escapedTable` WHERE `$escapedColumn` LIKE '%$escapedString%' LIMIT $maxResults";
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+
+    if ($result != false) {
+        while ($row = mysqli_fetch_assoc($result)) {
+            $matchingResults[] = $row;
+        }
+        mysqli_free_result($result);
+    }
+    dbDisconnect();
+
+    return empty($matchingResults) ? null : $matchingResults;
+}
+function changeUserInfo($username, $columnName, $newValue){
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+
+    // Direct Apply: Update live production document text immediately
+    $updateQuery = "UPDATE `$dataBaseName`.`auth-basic` 
+                    SET `$columnName` = '$newValue' 
+                    WHERE `name` = '$username'";
+    $success = mysqli_query($GLOBALS['ligacao'], $updateQuery);
+    dbDisconnect();
+
+    return $success;
+}
+function getUserInfo($username) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+    
+    $query = "SELECT `active`, `isBanned`, `contributions`, `bio` FROM `$dataBaseName`.`auth-basic` WHERE `name`='$username' LIMIT 1";
+    $result = mysqli_query($GLOBALS['ligacao'], $query);
+
+    if ($result != false && $result != null) {
+        if ($row = mysqli_fetch_assoc($result)) {
+            $userResult = $row;
+        }
+        mysqli_free_result($result);
+    }
+    dbDisconnect();
+    
+    if(!isset($userResult)) return null;
+    return $userResult;
+}
 function getCategoryList($type, $filterPrimary = "") {
     $categories = array();
     dbConnect(ConfigFile);
@@ -327,14 +382,14 @@ function authorizeUserByLevel($username, $requiredRoleName) {
     // Check if the user's level meets or exceeds the required level
     return ($userLevel >= $requiredLevel);
 }
-function getUserRoleFriendlyName($username) {
+function getUserRoleInfo($username) {
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
     mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
 
     $username = mysqli_real_escape_string($GLOBALS['ligacao'], $username);
 
-    $query = "SELECT r.`friendlyName` 
+    $query = "SELECT r.`friendlyName`, r.`roleLevel`, r.`idRole` 
               FROM `$dataBaseName`.`auth-basic` u
               JOIN `$dataBaseName`.`auth-roles` r ON u.`idRole` = r.`idRole`
               WHERE u.`name` = '$username' 
@@ -344,12 +399,11 @@ function getUserRoleFriendlyName($username) {
 
     if ($result && mysqli_num_rows($result) > 0) {
         $row = mysqli_fetch_assoc($result);
-        $friendlyName = $row['friendlyName'];
         mysqli_free_result($result);
     }
 
     dbDisconnect();
-    return $friendlyName;
+    return isset($row) ? $row : null;
 }
 
 function processPageChange($username, $pageTitle, $newContent, $visibility) {
@@ -650,7 +704,7 @@ function getAvailableRolesUpToUser($username) {
     mysqli_free_result($userResult);
 
     // 3. Fetch roleLevel and friendlyName columns from auth-roles up to the user's level (inclusive)
-    $rolesQuery = "SELECT `roleLevel`, `friendlyName` 
+    $rolesQuery = "SELECT `roleLevel`, `friendlyName`, `idRole` 
                    FROM `$dataBaseName`.`auth-roles` 
                    WHERE `roleLevel` <= $userMaxLevel 
                    ORDER BY `roleLevel` ASC";
@@ -662,7 +716,8 @@ function getAvailableRolesUpToUser($username) {
         while ($row = mysqli_fetch_assoc($rolesResult)) {
             $rolesList[] = [
                 'roleLevel'    => (int)$row['roleLevel'],
-                'friendlyName' => $row['friendlyName']
+                'friendlyName' => $row['friendlyName'],
+                'idRole' => $row['idRole']
             ];
         }
         mysqli_free_result($rolesResult);

@@ -51,3 +51,43 @@ function updateSecondaryCategories() {
   xmlHttp.open("GET", url, true);
   xmlHttp.send(null);
 }
+
+function searchUsers(query) {
+  const suggestionsContainer = document.getElementById('autocomplete-suggestions');
+  const currentValue = query.trim();
+
+  // Clear current options except the placeholder
+  suggestionsContainer.innerHTML = '';
+
+  if (query.length < 3) {
+    return;
+  }
+
+  xmlHttp = GetXmlHttpObject();
+  if (xmlHttp == null) {
+    return;
+  }
+
+  // Encode parameter to handle spaces or special characters safely
+  var url = "processSearchUsers.php?user=" + encodeURIComponent(currentValue);
+
+  xmlHttp.onreadystatechange = function() {
+    if (xmlHttp.readyState == 4 && xmlHttp.status == 200) {
+      // Expecting a JSON array string back from the server
+      var users = JSON.parse(xmlHttp.responseText);
+      
+      for (var i = 0; i < users.length; i++) {
+        var opt = document.createElement("option");
+        var name = users[i]["name"];
+        var link = document.createElement('a');
+        link.href = `profile.php?user=${encodeURIComponent(name)}`;
+        link.textContent = name;
+        
+        suggestionsContainer.appendChild(link);
+      }
+    }
+  };
+
+  xmlHttp.open("GET", url, true);
+  xmlHttp.send(null);
+}

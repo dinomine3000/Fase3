@@ -1,17 +1,17 @@
 <?php
 include_once("../Lib/lib.php");
 require_once( "../Lib/wikiLib.php" );
-    //Display dos erros
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL); 
+//Display dos erros
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL); 
 
 if (!isset($_SESSION)) {
     session_start();
 }
 $isLoggedIn = isset($_SESSION['id']);
 $name = $isLoggedIn ? $_SESSION['username'] : null;
-$role = $name ? getUserRoleFriendlyName($name) : null;
+$role = $name ? getUserRoleInfo($name)['friendlyName'] : null;
 
 $primaryCategories = getCategoryList('primary');
 $shades = ['s1','s2','s3','s4','s5'];
