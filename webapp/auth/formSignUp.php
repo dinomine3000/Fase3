@@ -1,6 +1,7 @@
 <?php
 require_once("../../Lib/db.php");
-require_once( "../../Lib/wikiLib.php" );
+require_once("../../Lib/wikiLib.php" );
+require_once("../../Lib/lang/translator.php" );
 loadConfigurationDataBase(constant("ConfigFile"));
 
 $flags = [];
@@ -32,7 +33,7 @@ $error = filter_input($_INPUT_METHOD, 'error', FILTER_UNSAFE_RAW, $flags);
 <div class="container-lg py-4 d-flex justify-content-center">
   <div class="form-card" style="width:100%;max-width:400px">
 
-    <div class="form-title">Create account</div>
+    <div class="form-title"><?php echo lang("create_account");?></div>
 
     <?php if (isset($error) && $error !== ''): ?>
       <div class="status-banner error" style="margin-bottom:1rem">
@@ -54,7 +55,7 @@ $error = filter_input($_INPUT_METHOD, 'error', FILTER_UNSAFE_RAW, $flags);
           onsubmit="return FormSignupValidator(this)" name="FormSignup">
 
       <div class="form-group">
-        <label class="form-label" for="username">Username</label>
+        <label class="form-label" for="username"><?php echo lang("username");?></label>
         <input class="form-input" required type="text" id="username" name="username"
                placeholder="Choose a username" autofocus>
       </div>
