@@ -25,15 +25,22 @@ function getResultsMatching($testString, $desiredColumn = '', $tableName = 'auth
 function changeUserInfo($username, $columnName, $newValue){
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
-    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
+    $conn = $GLOBALS['ligacao'];
+    mysqli_select_db($conn, $dataBaseName);
+    
+    $updateQuery = "UPDATE `auth-basic` SET `$columnName` = ? WHERE `name` = ?";
 
-    // Direct Apply: Update live production document text immediately
-    $updateQuery = "UPDATE `$dataBaseName`.`auth-basic` 
-                    SET `$columnName` = '$newValue' 
-                    WHERE `name` = '$username'";
-    $success = mysqli_query($GLOBALS['ligacao'], $updateQuery);
+    $stmt = mysqli_prepare($conn, $updateQuery);
+    if (!$stmt) {
+        dbDisconnect();
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, 'ss', $newValue, $username);
+    $success = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+
     dbDisconnect();
-
     return $success;
 }
 function getUserInfo($username) {
@@ -345,6 +352,8 @@ function authorizeUserByLevel($username, $requiredRoleName) {
     $dataBaseName = $GLOBALS['configDataBase']->db;
     mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
 
+    if($username === null || !isset($username)) return false;
+
     $username = mysqli_real_escape_string($GLOBALS['ligacao'], $username);
     $requiredRoleName = mysqli_real_escape_string($GLOBALS['ligacao'], $requiredRoleName);
 
@@ -395,7 +404,6 @@ function getUserRoleInfo($username) {
               WHERE u.`name` = '$username' 
               LIMIT 1";
     $result = mysqli_query($GLOBALS['ligacao'], $query);
-    $friendlyName = null;
 
     if ($result && mysqli_num_rows($result) > 0) {
         $row = mysqli_fetch_assoc($result);
@@ -482,7 +490,7 @@ function processPageChange($username, $pageTitle, $newContent, $visibility) {
             $serverPort = 80;
             $name = webAppName();
             $baseUrl = "http://" . $serverName . ":" . $serverPort;
-            $link = $baseUrl . $name . "viewPage.php?title=" . urlencode($pageTitle);
+            $link = $baseUrl . $name . "viewPage.php?pageTitle=" . urlencode($pageTitle);
 
             $Subject = "Wiki Page Updated: " . $pageTitle;
             $Message = "The page '" . $pageTitle . "' has been updated by " . $username . ".\n\nYou can view the changes here:\n" . $link;
