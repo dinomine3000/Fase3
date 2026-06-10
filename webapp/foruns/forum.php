@@ -1,17 +1,21 @@
 <?php
 include_once("../../Lib/lib.php");
+include_once("../../Lib/lang/translator.php");
 if (!isset($_SESSION)) session_start();
 $isLoggedIn = isset($_SESSION['id']);
+$_langSwitch = ($current_lang === 'en') ? 'pt' : 'en';
+$_qp = $_GET; $_qp['lang'] = $_langSwitch;
+$_langToggleUrl = '?' . http_build_query($_qp);
 ?>
 <!DOCTYPE html>
-<html lang="pt" data-theme="light">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fórum — Smiki</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../wiki/styles/wiki.css?v=3">
+<link rel="stylesheet" href="../wiki/styles/wiki.css?v=4">
 <link rel="stylesheet" href="styles/discussions.css">
 <link rel="stylesheet" href="styles/composer.css">
 </head>
@@ -22,23 +26,24 @@ $isLoggedIn = isset($_SESSION['id']);
 <header class="site-header">
   <div class="container-lg py-0">
     <div class="d-flex align-items-center gap-3" style="height:56px">
-      <a class="logo" href="../home.php">Portal <span class="logo-wiki">Wiki</span></a>
+      <a class="logo" href="../home.php"><?php echo lang('portal'); ?> <span class="logo-wiki"><?php echo lang('wiki'); ?></span></a>
       <div class="search-wrap flex-grow-1">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" placeholder="Search wiki…"
+        <input type="text" placeholder="<?php echo lang('search_wiki'); ?>"
                onkeydown="if(event.key==='Enter'&&this.value.trim())location.href='../wiki/search.php?q='+encodeURIComponent(this.value.trim())">
       </div>
-      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark">
+      <a href="<?php echo $_langToggleUrl; ?>" class="lang-toggle" title="<?php echo lang('switch_language'); ?>" style="text-decoration:none"><?php echo strtoupper($_langSwitch); ?></a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="<?php echo lang('toggle_theme'); ?>">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       </button>
       <a href="../home.php" class="hbtn primary" style="text-decoration:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-        Wiki
+        <?php echo lang('wiki'); ?>
       </a>
       <a href="../auth/formLogin.php" class="hbtn" style="text-decoration:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        Login
+        <?php echo lang('login'); ?>
       </a>
     </div>
   </div>

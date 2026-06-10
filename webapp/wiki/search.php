@@ -60,7 +60,7 @@ $total = count($catResults) + count($subcatResults) + count($artResults) + count
 <title><?php echo $q ? htmlspecialchars($q).' — ' : ''; ?>Search — Portal Wiki</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/wiki.css?v=3">
+<link rel="stylesheet" href="styles/wiki.css?v=4">
 <link rel="stylesheet" href="styles/search.css?v=3">
 </head>
 <body>
@@ -74,30 +74,30 @@ $total = count($catResults) + count($subcatResults) + count($artResults) + count
   <?php if ($q === ''): ?>
     <div class="search-empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <div class="search-empty-title">Search the wiki</div>
-      <div class="search-empty-sub">Type to find categories, subcategories, articles, and users.</div>
+      <div class="search-empty-title"><?php echo lang('search_the_wiki'); ?></div>
+      <div class="search-empty-sub"><?php echo lang('search_hint'); ?></div>
     </div>
 
   <?php elseif ($total === 0): ?>
     <div class="search-empty">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <div class="search-empty-title">No results for &ldquo;<?php echo htmlspecialchars($q); ?>&rdquo;</div>
-      <div class="search-empty-sub">Try different keywords or check your spelling.</div>
+      <div class="search-empty-title"><?php echo lang('no_results_for'); ?> &ldquo;<?php echo htmlspecialchars($q); ?>&rdquo;</div>
+      <div class="search-empty-sub"><?php echo lang('try_different'); ?></div>
     </div>
 
   <?php else: ?>
     <div class="search-summary">
-      <?php echo $total; ?> result<?php echo $total !== 1 ? 's' : ''; ?> for &ldquo;<?php echo htmlspecialchars($q); ?>&rdquo;
+      <?php echo $total; ?> <?php echo $total !== 1 ? lang('result_plural') : lang('result_singular'); ?> &ldquo;<?php echo htmlspecialchars($q); ?>&rdquo;
     </div>
 
     <?php if ($catResults): ?>
     <div class="section-heading">
-      Categories <span class="res-count"><?php echo count($catResults); ?></span>
+      <?php echo lang('categories'); ?> <span class="res-count"><?php echo count($catResults); ?></span>
     </div>
     <div class="d-flex flex-column gap-1 mb-4">
       <?php foreach ($catResults as $c): ?>
       <a class="result-bar" href="viewPage.php?primaryCategory=<?php echo urlencode($c['name']); ?>">
-        <span class="res-chip">Category</span>
+        <span class="res-chip"><?php echo lang('category_chip'); ?></span>
         <div class="art-body">
           <div class="art-title"><?php echo htmlspecialchars($c['name']); ?></div>
         </div>
@@ -111,12 +111,12 @@ $total = count($catResults) + count($subcatResults) + count($artResults) + count
 
     <?php if ($subcatResults): ?>
     <div class="section-heading">
-      Subcategories <span class="res-count"><?php echo count($subcatResults); ?></span>
+      <?php echo lang('subcategories'); ?> <span class="res-count"><?php echo count($subcatResults); ?></span>
     </div>
     <div class="d-flex flex-column gap-1 mb-4">
       <?php foreach ($subcatResults as $s): ?>
       <a class="result-bar" href="viewPage.php?primaryCategory=<?php echo urlencode($s['cat_name']); ?>&secondaryCategory=<?php echo urlencode($s['name']); ?>">
-        <span class="res-chip">Subcategory</span>
+        <span class="res-chip"><?php echo lang('subcategory_chip'); ?></span>
         <div class="art-body">
           <div class="art-title"><?php echo htmlspecialchars($s['name']); ?></div>
         </div>
@@ -131,7 +131,7 @@ $total = count($catResults) + count($subcatResults) + count($artResults) + count
 
     <?php if ($artResults): ?>
     <div class="section-heading">
-      Articles <span class="res-count"><?php echo count($artResults); ?></span>
+      <?php echo lang('articles'); ?> <span class="res-count"><?php echo count($artResults); ?></span>
     </div>
     <div class="d-flex flex-column gap-1 mb-4">
       <?php foreach ($artResults as $a): ?>
@@ -151,7 +151,7 @@ $total = count($catResults) + count($subcatResults) + count($artResults) + count
 
     <?php if ($userResults): ?>
     <div class="section-heading">
-      Users <span class="res-count"><?php echo count($userResults); ?></span>
+      <?php echo lang('users'); ?> <span class="res-count"><?php echo count($userResults); ?></span>
     </div>
     <div class="d-flex flex-column gap-1 mb-4">
       <?php foreach ($userResults as $u): ?>

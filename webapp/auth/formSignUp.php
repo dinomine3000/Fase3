@@ -20,7 +20,7 @@ $error = filter_input($_INPUT_METHOD, 'error', FILTER_UNSAFE_RAW, $flags);
 <title>Sign Up — Smiki</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../wiki/styles/wiki.css?v=3">
+<link rel="stylesheet" href="../wiki/styles/wiki.css?v=4">
 <link rel="stylesheet" href="../wiki/styles/form.css">
 <script type="text/javascript" src="forms.js"></script>
 </head>
@@ -40,13 +40,13 @@ $error = filter_input($_INPUT_METHOD, 'error', FILTER_UNSAFE_RAW, $flags);
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         <?php
         $msgs = [
-          'badCode'   => 'Wrong captcha code.',
-          'badName'   => 'Username already exists.',
-          'badEmail'  => 'Email already exists.',
-          'badRepeat' => 'Passwords do not match.',
-          'invalid'   => 'Invalid values submitted.',
+          'badCode'   => lang('err_bad_code'),
+          'badName'   => lang('err_bad_name'),
+          'badEmail'  => lang('err_bad_email'),
+          'badRepeat' => lang('err_bad_repeat'),
+          'invalid'   => lang('err_invalid'),
         ];
-        echo isset($msgs[$error]) ? $msgs[$error] : 'Bad field: ' . htmlspecialchars($error);
+        echo isset($msgs[$error]) ? $msgs[$error] : lang('error') . htmlspecialchars($error);
         ?>
       </div>
     <?php endif; ?>
@@ -57,40 +57,40 @@ $error = filter_input($_INPUT_METHOD, 'error', FILTER_UNSAFE_RAW, $flags);
       <div class="form-group">
         <label class="form-label" for="username"><?php echo lang("username");?></label>
         <input class="form-input" required type="text" id="username" name="username"
-               placeholder="Choose a username" autofocus>
+               placeholder="<?php echo lang('choose_username'); ?>" autofocus>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="email">Email</label>
+        <label class="form-label" for="email"><?php echo lang('email'); ?></label>
         <input class="form-input" required type="text" id="email" name="email"
-               placeholder="your@email.com">
+               placeholder="<?php echo lang('email_placeholder'); ?>">
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="password">Password</label>
+        <label class="form-label" for="password"><?php echo lang('password'); ?></label>
         <input class="form-input" required type="password" id="password" name="password"
-               placeholder="Choose a password">
+               placeholder="<?php echo lang('choose_password'); ?>">
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="password_2">Repeat password</label>
+        <label class="form-label" for="password_2"><?php echo lang('repeat_password_label'); ?></label>
         <input class="form-input" required type="password" id="password_2" name="password_2"
-               placeholder="Repeat your password">
+               placeholder="<?php echo lang('repeat_password_placeholder'); ?>">
       </div>
 
       <div class="form-group">
-        <label class="form-label">Captcha</label>
+        <label class="form-label"><?php echo lang('captcha'); ?></label>
         <img src="../captcha/captchaImage.php" style="display:block;margin-bottom:6px"><br>
-        <label for="captcha" style="font-family:'Outfit',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--faint)">Enter the code above</label><br>
+        <label for="captcha" style="font-family:'Outfit',sans-serif;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--faint)"><?php echo lang('captcha_label'); ?></label><br>
         <input required type="text" name="captcha" id="captcha" class="form-input" style="margin-top:4px">
       </div>
 
       <div class="form-actions" style="flex-direction:column;gap:0.75rem">
         <button type="submit" class="hbtn primary" style="width:100%;justify-content:center">
-          Create account
+          <?php echo lang('create_account'); ?>
         </button>
         <button type="reset" class="hbtn" style="width:100%;justify-content:center">
-          Clear
+          <?php echo lang('clear'); ?>
         </button>
       </div>
 
@@ -99,12 +99,12 @@ $error = filter_input($_INPUT_METHOD, 'error', FILTER_UNSAFE_RAW, $flags);
     <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;gap:1rem;justify-content:center">
       <a href="formLogin.php" style="font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s"
          onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
-        Sign In
+        <?php echo lang('sign_in'); ?>
       </a>
       <span style="color:var(--border2)">·</span>
       <a href="javascript:history.back()" style="font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s"
          onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
-        Go back
+        <?php echo lang('go_back'); ?>
       </a>
     </div>
 

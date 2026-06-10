@@ -75,7 +75,7 @@ $shades = ['s1','s2','s3','s4','s5'];
 <title>Portal Wiki</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/wiki.css?v=3">
+<link rel="stylesheet" href="styles/wiki.css?v=4">
 <link rel="stylesheet" href="styles/viewpage.css">
 </head>
 <body>
@@ -88,7 +88,7 @@ $shades = ['s1','s2','s3','s4','s5'];
 
 <?php if ($state === 'primary'): ?>
   <!-- ── STATE 1: Primary categories ── -->
-  <div class="section-heading">Categories</div>
+  <div class="section-heading"><?php echo lang('categories'); ?></div>
   <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-2">
     <?php foreach ($primaryCategories as $i => $cat):
       $shade = $shades[$i % 5];
@@ -114,12 +114,12 @@ $shades = ['s1','s2','s3','s4','s5'];
   <div class="page-nav">
     <a href="../home.php" class="back-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      All Categories
+      <?php echo lang('all_categories'); ?>
     </a>
   </div>
   <div class="section-heading"><?php echo htmlspecialchars($primary); ?></div>
   <?php if (empty($secondaryCategories)): ?>
-    <div class="no-results">No subcategories yet.</div>
+    <div class="no-results"><?php echo lang('no_subcategories'); ?></div>
   <?php else: ?>
   <div class="subcat-grid">
     <?php foreach ($secondaryCategories as $i => $secCat):
@@ -150,7 +150,7 @@ $shades = ['s1','s2','s3','s4','s5'];
       <input type="hidden" name="primaryCategory" value="<?php echo htmlspecialchars($primary); ?>">
       <input type="hidden" name="secondaryCategory" value="<?php echo htmlspecialchars($secondary); ?>">
       <button type="submit" name="toggle_cat_sub" class="hbtn" style="height:28px;font-size:11px;padding:0 10px">
-        <?php echo isSubscribedToCategory($userId, $primary, $secondary) ? 'Unsubscribe' : 'Subscribe'; ?>
+        <?php echo isSubscribedToCategory($userId, $primary, $secondary) ? lang('unsubscribe') : lang('subscribe'); ?>
       </button>
     </form>
     <?php endif; ?>
@@ -159,7 +159,7 @@ $shades = ['s1','s2','s3','s4','s5'];
   <div class="section-heading"><?php echo htmlspecialchars($secondary); ?></div>
 
   <?php if (empty($pages)): ?>
-    <div class="no-results">No pages in this category yet.</div>
+    <div class="no-results"><?php echo lang('no_pages'); ?></div>
   <?php else: ?>
   <div class="d-flex flex-column">
     <?php foreach ($pages as $page):
@@ -190,7 +190,7 @@ $shades = ['s1','s2','s3','s4','s5'];
     <?php else: ?>
     <a href="?" class="back-link">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-      Categories
+      <?php echo lang('categories'); ?>
     </a>
     <?php endif; ?>
 
@@ -199,12 +199,12 @@ $shades = ['s1','s2','s3','s4','s5'];
     <?php if (isset($name) && authorizeUserByLevel($name, 'user')): ?>
     <a href="editPage.php?pageTitle=<?php echo urlencode($title); ?>" class="hbtn" style="text-decoration:none">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-      Edit
+      <?php echo lang('edit'); ?>
     </a>
     <form method="POST" style="margin:0">
       <input type="hidden" name="pageTitle" value="<?php echo htmlspecialchars($title); ?>">
       <button type="submit" name="toggle_page_sub" class="hbtn" style="height:36px;padding:0 15px;cursor:pointer">
-        <?php echo isSubscribedToPage($userId, $title) ? 'Unsubscribe' : 'Subscribe'; ?>
+        <?php echo isSubscribedToPage($userId, $title) ? lang('unsubscribe') : lang('subscribe'); ?>
       </button>
     </form>
     <?php endif; ?>
