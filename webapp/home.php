@@ -34,6 +34,14 @@ $shades = ['s1','s2','s3','s4','s5'];
 <?php include('./wiki/header.php'); ?>
 
 <div class="container-lg py-4">
+  <?php if ($isLoggedIn): ?>
+  <div class="welcome-block">
+    <div class="welcome-name">Welcome back, <?php echo htmlspecialchars($name); ?></div>
+    <?php if ($role): ?>
+    <div class="welcome-role"><?php echo htmlspecialchars($role); ?></div>
+    <?php endif; ?>
+  </div>
+  <?php endif; ?>
 
   <div>
     <?php 
@@ -53,14 +61,6 @@ $shades = ['s1','s2','s3','s4','s5'];
       echo "Current Portal players: " . $portalPlayers . "<br>Current Portal 2 Players: " . $portal2Players;
     ?>
   </div>
-  <?php if ($isLoggedIn): ?>
-  <div class="welcome-block">
-    <div class="welcome-name">Welcome back, <?php echo htmlspecialchars($name); ?></div>
-    <?php if ($role): ?>
-    <div class="welcome-role"><?php echo htmlspecialchars($role); ?></div>
-    <?php endif; ?>
-  </div>
-  <?php endif; ?>
 
   <?php
   if ($name && authorizeUserByLevel($name, 'organizer')):
