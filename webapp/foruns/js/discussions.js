@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.viewDiscussion = function(idDiscussion) {
         contentArea.innerHTML = `<p class="loading">A abrir tópico...</p>`;
 
-        fetch(`getDiscussion.php?idDiscussion=${idDiscussion}`)
+        fetch(`getDiscussions.php?idDiscussion=${idDiscussion}`)
             .then(res => res.json())
             .then(response => {
                 if (response.status === "success") {
