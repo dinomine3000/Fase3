@@ -239,17 +239,6 @@ $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'un
   </div>
   <?php endif; ?>
 
-  <div class="section-heading">Find User</div>
-  <div class="profile-find-wrap">
-    <form id="userSearch" method="GET" action="">
-      <div class="search-wrap">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="search" name="user" id="userSearchbar" placeholder="Search users…">
-      </div>
-    </form>
-    <div id="autocomplete-suggestions"></div>
-  </div>
-
 </div>
 
 <script>
