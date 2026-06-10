@@ -1,6 +1,7 @@
 <?php
 // createPost.php
 include_once("../../Lib/lib.php");
+include_once("../../Lib/wikiLib.php");
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -10,7 +11,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$idUser = getActiveUserIdFromAuth();
+if (!isset($_SESSION)) session_start();
+$idUser = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
+
 if ($idUser === 0) {
     http_response_code(401);
     echo json_encode(['status' => 'error', 'message' => 'Utilizador não autenticado.']);

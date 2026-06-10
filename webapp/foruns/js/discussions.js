@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const formData = new FormData();
         formData.append("idPost", idPost);
 
-        fetch("like.php", { method: "POST", body: formData })
+        fetch("likes.php", { method: "POST", body: formData })
             .then(res => {
                 if (res.status === 401) {
                     alert("Precisa de iniciar sessão para fazer Gosto!");
