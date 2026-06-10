@@ -19,7 +19,7 @@ $error = filter_input($_INPUT_METHOD, 'error', FILTER_UNSAFE_RAW, $flags);
 <title>Sign Up — Smiki</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../wiki/styles/wiki.css">
+<link rel="stylesheet" href="../wiki/styles/wiki.css?v=3">
 <link rel="stylesheet" href="../wiki/styles/form.css">
 <script type="text/javascript" src="forms.js"></script>
 </head>

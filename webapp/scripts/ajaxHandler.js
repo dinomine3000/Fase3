@@ -52,7 +52,105 @@ function updateSecondaryCategories() {
   xmlHttp.send(null);
 }
 
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function searchWiki(query, basePath, callback) {
+  if (query.trim().length < 2) { callback(null); return; }
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+      try { callback(JSON.parse(xhr.responseText)); } catch(e) { callback(null); }
+    }
+  };
+  xhr.open('GET', basePath + 'processSearchWiki.php?q=' + encodeURIComponent(query.trim()), true);
+  xhr.send(null);
+}
+
+function searchAllHeader(query, containerId, basePath) {
+  var container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  container.classList.remove('has-results');
+  if (query.trim().length < 2) return;
+
+  var wikiDone = false, usersDone = false;
+  var wikiData = null, usersData = null;
+
+  function render() {
+    if (!wikiDone || !usersDone) return;
+    var html = '', total = 0;
+
+    if (wikiData && wikiData.categories && wikiData.categories.length) {
+      html += '<div class="suggest-group-label">Topics</div>';
+      wikiData.categories.slice(0, 2).forEach(function(c) {
+        html += '<a class="suggest-item" href="' + basePath + 'viewPage.php?primaryCategory=' + encodeURIComponent(c.name) + '">'
+              + '<span class="suggest-item-type">Topic</span>'
+              + '<span class="suggest-item-name">' + escHtml(c.name) + '</span>'
+              + '</a>';
+        total++;
+      });
+    }
+
+    if (wikiData && wikiData.subcategories && wikiData.subcategories.length) {
+      html += '<div class="suggest-group-label">Subtopics</div>';
+      wikiData.subcategories.slice(0, 2).forEach(function(s) {
+        html += '<a class="suggest-item" href="' + basePath + 'viewPage.php?primaryCategory=' + encodeURIComponent(s.primaryCategory) + '&secondaryCategory=' + encodeURIComponent(s.name) + '">'
+              + '<span class="suggest-item-type">Subtopic</span>'
+              + '<span class="suggest-item-name">' + escHtml(s.name) + '</span>'
+              + '<span class="suggest-item-meta">' + escHtml(s.primaryCategory) + '</span>'
+              + '</a>';
+        total++;
+      });
+    }
+
+    if (wikiData && wikiData.pages && wikiData.pages.length) {
+      html += '<div class="suggest-group-label">Pages</div>';
+      wikiData.pages.slice(0, 2).forEach(function(p) {
+        html += '<a class="suggest-item" href="' + basePath + 'viewPage.php?pageTitle=' + encodeURIComponent(p.pageTitle) + '">'
+              + '<span class="suggest-item-type">Page</span>'
+              + '<span class="suggest-item-name">' + escHtml(p.pageTitle) + '</span>'
+              + '</a>';
+        total++;
+      });
+    }
+
+    if (usersData && usersData.length) {
+      html += '<div class="suggest-group-label">Users</div>';
+      usersData.slice(0, 2).forEach(function(u) {
+        html += '<a class="suggest-item" href="' + basePath + 'profile.php?user=' + encodeURIComponent(u.name) + '">'
+              + '<span class="suggest-item-type">User</span>'
+              + '<span class="suggest-item-name">' + escHtml(u.name) + '</span>'
+              + '</a>';
+        total++;
+      });
+    }
+
+    if (total > 0) {
+      container.innerHTML = html;
+      container.classList.add('has-results');
+    }
+  }
+
+  searchWiki(query, basePath, function(data) {
+    wikiData = data; wikiDone = true; render();
+  });
+
+  var userXhr = new XMLHttpRequest();
+  userXhr.onreadystatechange = function() {
+    if (userXhr.readyState === 4 && userXhr.status === 200) {
+      try { usersData = JSON.parse(userXhr.responseText); } catch(e) { usersData = null; }
+      usersDone = true; render();
+    }
+  };
+  userXhr.open('GET', basePath + 'processSearchUsers.php?user=' + encodeURIComponent(query.trim()), true);
+  userXhr.send(null);
+}
+
+
 function searchUsers(query) {
+
   const suggestionsContainer = document.getElementById('autocomplete-suggestions');
   const currentValue = query.trim();
 

@@ -24,7 +24,7 @@ $shades = ['s1','s2','s3','s4','s5'];
 <title>Smiki — Home</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="wiki/styles/wiki.css">
+<link rel="stylesheet" href="wiki/styles/wiki.css?v=3">
 <link rel="stylesheet" href="wiki/styles/home.css">
 </head>
 <body>
@@ -35,10 +35,15 @@ $shades = ['s1','s2','s3','s4','s5'];
   <div class="container-lg py-0">
     <div class="d-flex align-items-center gap-3" style="height:56px">
       <a class="logo" href="home.php">Portal <span class="logo-wiki">Wiki</span></a>
-      <div class="search-wrap flex-grow-1">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="searchInput" placeholder="Search wiki…"
-               onkeydown="if(event.key==='Enter'&&this.value.trim())location.href='wiki/search.php?q='+encodeURIComponent(this.value.trim())">
+      <div class="search-outer">
+        <div class="search-wrap">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" placeholder="Search wiki…"
+                 oninput="searchAllHeader(this.value,'hdr-suggest','wiki/')"
+                 onblur="setTimeout(()=>{let s=document.getElementById('hdr-suggest');if(s){s.innerHTML='';s.classList.remove('has-results');}},150)"
+                 onkeydown="if(event.key==='Enter'&&this.value.trim())location.href='wiki/search.php?q='+encodeURIComponent(this.value.trim())">
+        </div>
+        <div id="hdr-suggest" class="search-suggest"></div>
       </div>
       <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -49,10 +54,12 @@ $shades = ['s1','s2','s3','s4','s5'];
         Forum
       </a>
       <?php if ($isLoggedIn): ?>
+      <a href="wiki/profile.php?user=<?php echo urlencode($name); ?>" class="hbtn icon" style="text-decoration:none" title="My Profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      </a>
       <form action="auth/logout.php" method="POST" style="margin:0">
-        <button type="submit" class="hbtn" style="height:36px;padding:0 15px;cursor:pointer">
+        <button type="submit" class="hbtn icon" title="Logout">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          Logout
         </button>
       </form>
       <?php else: ?>
@@ -175,6 +182,7 @@ function toggleTheme() {
   localStorage.setItem('smiki-theme', next);
 }
 </script>
+<script src="scripts/ajaxHandler.js?v=3"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
