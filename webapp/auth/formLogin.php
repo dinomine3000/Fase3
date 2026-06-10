@@ -2,6 +2,7 @@
 <?php
 require_once( "../../Lib/lib.php" );
 require_once( "../../Lib/wikiLib.php" );
+include_once( "../../Lib/lang/translator.php");
 
 $flags[] = FILTER_NULL_ON_FAILURE;
 
@@ -41,18 +42,18 @@ $message = filter_input($_INPUT_METHOD, 'message', FILTER_UNSAFE_RAW, $flags);
 <div class="container-lg py-4 d-flex justify-content-center">
   <div class="form-card" style="width:100%;max-width:400px">
 
-    <div class="form-title">Sign in</div>
+    <div class="form-title"><?php echo lang("login");?></div>
 
     <?php if (isset($message) && $message !== ''): ?>
       <?php if ($message === 'success'): ?>
         <div class="status-banner success" style="margin-bottom:1rem">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          Email validated successfully.
+          <?php echo lang("email_validated");?>
         </div>
       <?php else: ?>
         <div class="status-banner error" style="margin-bottom:1rem">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          <?php echo $message === 'failed' ? 'Email validation failed.' : 'Error: ' . htmlspecialchars($message); ?>
+          <?php echo $message === 'failed' ? lang("email_failed") : lang("error") . htmlspecialchars($message); ?>
         </div>
       <?php endif; ?>
     <?php endif; ?>
@@ -60,23 +61,23 @@ $message = filter_input($_INPUT_METHOD, 'message', FILTER_UNSAFE_RAW, $flags);
     <form action="processFormLogin.php" method="POST">
 
       <div class="form-group">
-        <label class="form-label" for="username">Username</label>
+        <label class="form-label" for="username"><?php echo lang("username");?></label>
         <input class="form-input" type="text" id="username" name="username"
-               placeholder="Your username" required autofocus>
+               placeholder="<?php echo lang("username_placeholder");?>" required autofocus>
       </div>
 
       <div class="form-group" style="margin-bottom:0">
-        <label class="form-label" for="password">Password</label>
+        <label class="form-label" for="password"><?php echo lang("password");?></label>
         <input class="form-input" type="password" id="password" name="password"
-               placeholder="Your password" required>
+               placeholder="<?php echo lang("password_placeholder");?>" required>
       </div>
 
       <div class="form-actions" style="flex-direction:column;gap:0.75rem">
         <button type="submit" class="hbtn primary" style="width:100%;justify-content:center">
-          Sign in
+          <?php echo lang("login");?>
         </button>
         <button type="reset" class="hbtn" style="width:100%;justify-content:center">
-          Clear
+          <?php echo lang("clear");?>
         </button>
       </div>
 
@@ -85,12 +86,12 @@ $message = filter_input($_INPUT_METHOD, 'message', FILTER_UNSAFE_RAW, $flags);
     <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;gap:1rem;justify-content:center">
       <a href="formSignUp.php" style="font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s"
          onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
-        Create account
+        <?php echo lang("create_account");?>
       </a>
       <span style="color:var(--border2)">·</span>
       <a href="javascript:history.back()" style="font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s"
          onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
-        Go back
+        <?php echo lang("go_back");?>
       </a>
     </div>
 
