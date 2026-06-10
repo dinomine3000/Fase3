@@ -29,7 +29,7 @@ $name = $isLoggedIn ? $_SESSION['username'] : '';
 <title>Files — Smiki</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../wiki/styles/wiki.css?v=3">
+<link rel="stylesheet" href="../wiki/styles/wiki.css?v=4">
 <style>
 .file-grid {
   display: grid;
@@ -61,11 +61,11 @@ $name = $isLoggedIn ? $_SESSION['username'] : '';
 <?php include('../wiki/header.php')?>
 
 <div class="container-lg py-4">
-  <div class="section-heading d-flex justify-content-between align-items-center w-100">Files
+  <div class="section-heading d-flex justify-content-between align-items-center w-100"><?php echo lang('files'); ?>
     <?php if (isset($name) && authorizeUserByLevel($name, 'organizer')): ?>
       <a href="./formUpload.php" class="hbtn primary" style="text-decoration:none">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
-        Upload File
+        <?php echo lang('upload_file'); ?>
       </a>
       <?php endif; ?>
   </div>

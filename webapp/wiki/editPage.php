@@ -48,7 +48,7 @@ $currentPageLevel = isset($meta['visibility']) ? (int)$meta['visibility'] : 0;
 <title>Edit — <?php echo htmlspecialchars($title); ?></title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/wiki.css?v=3">
+<link rel="stylesheet" href="styles/wiki.css?v=4">
 <link rel="stylesheet" href="styles/form.css">
 </head>
 <body>
@@ -59,7 +59,7 @@ $currentPageLevel = isset($meta['visibility']) ? (int)$meta['visibility'] : 0;
 
 
 <div class="container-lg py-4">
-  <div class="section-heading">Edit Page</div>
+  <div class="section-heading"><?php echo lang('edit_page'); ?></div>
 
   <div class="form-card">
     <div class="form-title"><?php echo htmlspecialchars($title); ?></div>
@@ -67,12 +67,12 @@ $currentPageLevel = isset($meta['visibility']) ? (int)$meta['visibility'] : 0;
     <?php if ($willAutoPublish): ?>
     <div class="status-banner success" style="margin-bottom:1.25rem">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-      Your changes will be published immediately.
+      <?php echo lang('will_publish_immediately'); ?>
     </div>
     <?php else: ?>
     <div class="status-banner" style="margin-bottom:1.25rem;background:rgba(180,140,0,0.07);border:1px solid rgba(180,140,0,0.25);color:#a07800">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-      Your changes will be held in the moderation queue for approval.
+      <?php echo lang('will_queue'); ?>
     </div>
     <?php endif; ?>
 
@@ -80,7 +80,7 @@ $currentPageLevel = isset($meta['visibility']) ? (int)$meta['visibility'] : 0;
       <input type="hidden" name="pageTitle" value="<?php echo htmlspecialchars($title); ?>">
 
       <div class="form-group">
-        <label class="form-label">Content (Markdown)</label>
+        <label class="form-label"><?php echo lang('content_markdown'); ?></label>
         <div class="md-toolbar">
           <button type="button" class="md-btn" onclick="insertMd('**','**')"><b>B</b></button>
           <button type="button" class="md-btn" onclick="insertMd('*','*')"><em>I</em></button>
@@ -96,7 +96,7 @@ $currentPageLevel = isset($meta['visibility']) ? (int)$meta['visibility'] : 0;
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="visibility">Minimum role to view</label>
+        <label class="form-label" for="visibility"><?php echo lang('min_role_view'); ?></label>
         <select class="form-select" id="visibility" name="visibility" required>
           <?php if (empty($allowedRoles)): ?>
             <option value="0" selected>Guest (default)</option>
@@ -114,11 +114,11 @@ $currentPageLevel = isset($meta['visibility']) ? (int)$meta['visibility'] : 0;
       <div class="form-actions">
         <button type="submit" class="hbtn primary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Save Changes
+          <?php echo lang('save_changes'); ?>
         </button>
         <a href="viewPage.php?pageTitle=<?php echo urlencode($title); ?>" class="hbtn" style="text-decoration:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-          Cancel
+          <?php echo lang('cancel'); ?>
         </a>
       </div>
 

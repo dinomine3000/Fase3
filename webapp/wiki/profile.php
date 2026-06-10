@@ -2,6 +2,7 @@
 require_once( "../../Lib/wikiLib.php" );
 include_once("../../Lib/extendedParsedown.php");
 include_once("../../Lib/db.php");
+include_once("../../Lib/lang/translator.php");
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -65,7 +66,7 @@ if ($canChangeRoles) {
 }
 
 $isOwnProfile = $isLoggedIn && ($clientName === $pageUsername);
-$status_label = $user['isBanned'] ? 'Banned' : ($user['active'] ? 'Active' : 'Unverified');
+$status_label = $user['isBanned'] ? lang('status_banned') : ($user['active'] ? lang('status_active') : lang('status_unverified'));
 $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'unverified');
 ?>
 <!DOCTYPE html>
@@ -76,7 +77,7 @@ $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'un
 <title><?php echo htmlspecialchars($pageUsername); ?> — Smiki</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/wiki.css?v=3">
+<link rel="stylesheet" href="styles/wiki.css?v=4">
 <link rel="stylesheet" href="styles/form.css">
 <link rel="stylesheet" href="styles/profile.css">
 </head>
@@ -104,11 +105,11 @@ $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'un
   <div class="profile-stats">
     <div class="stat-chip">
       <div class="stat-value"><?php echo (int)$user['contributions']; ?></div>
-      <div class="stat-label">Contributions</div>
+      <div class="stat-label"><?php echo lang('contributions'); ?></div>
     </div>
   </div>
 
-  <div class="section-heading">Bio</div>
+  <div class="section-heading"><?php echo lang('bio'); ?></div>
 
   <div class="profile-bio-card">
     <div id="bio-view">
@@ -119,7 +120,7 @@ $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'un
       <div class="profile-bio-actions">
         <button type="button" id="edit-bio-btn" class="hbtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-          Edit Bio
+          <?php echo lang('edit_bio'); ?>
         </button>
       </div>
       <?php endif; ?>
@@ -144,11 +145,11 @@ $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'un
       <div class="form-actions">
         <button type="submit" class="hbtn primary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          Save
+          <?php echo lang('save'); ?>
         </button>
         <button type="button" id="cancel-bio-btn" class="hbtn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          Cancel
+          <?php echo lang('cancel'); ?>
         </button>
       </div>
     </form>
@@ -156,11 +157,11 @@ $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'un
   </div>
 
   <?php if ($canChangeRoles): ?>
-  <div class="section-heading">Change Role</div>
+  <div class="section-heading"><?php echo lang('change_role'); ?></div>
   <div class="form-card" style="margin-bottom:1rem">
     <form method="POST" action="?user=<?php echo urlencode($pageUsername); ?>">
       <div class="form-group">
-        <label class="form-label" for="new_role">Assign a new role</label>
+        <label class="form-label" for="new_role"><?php echo lang('assign_role'); ?></label>
         <select class="form-select" name="new_role" id="new_role">
           <?php foreach ($availableRoles as $r): ?>
           <option value="<?php echo htmlspecialchars($r['idRole']); ?>">
@@ -172,7 +173,7 @@ $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'un
       <div class="form-actions">
         <button type="submit" class="hbtn primary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-          Update Role
+          <?php echo lang('update_role'); ?>
         </button>
       </div>
     </form>
@@ -181,7 +182,7 @@ $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'un
 
   <?php if ($canBan): ?>
   <div class="form-card" style="margin-bottom:1.5rem">
-    <div class="form-title">Moderation</div>
+    <div class="form-title"><?php echo lang('moderation'); ?></div>
     <form method="POST" action="?user=<?php echo urlencode($pageUsername); ?>">
       <input type="hidden" name="banning" value="<?php echo $user['isBanned'] ? 0 : 1; ?>">
       <div class="form-actions">
@@ -193,7 +194,7 @@ $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'un
             <circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/>
             <?php endif; ?>
           </svg>
-          <?php echo $user['isBanned'] ? "Unban " . htmlspecialchars($pageUsername) : "Ban " . htmlspecialchars($pageUsername); ?>
+          <?php echo $user['isBanned'] ? lang('unban') . ' ' . htmlspecialchars($pageUsername) : lang('ban') . ' ' . htmlspecialchars($pageUsername); ?>
         </button>
       </div>
     </form>

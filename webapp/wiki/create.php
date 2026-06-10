@@ -19,7 +19,7 @@ $primaryCategories = getCategoryList('primary');
 <title>Create Wiki Page</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/wiki.css?v=3">
+<link rel="stylesheet" href="styles/wiki.css?v=4">
 <link rel="stylesheet" href="styles/form.css">
 </head>
 <body>
@@ -29,7 +29,7 @@ $primaryCategories = getCategoryList('primary');
 <?php include('./header.php')?>
 
 <div class="container-lg py-4">
-  <div class="section-heading">Create a New Wiki Page</div>
+  <div class="section-heading"><?php echo lang('create_wiki_page'); ?></div>
 
   <div class="form-card">
     <!--
@@ -40,16 +40,16 @@ $primaryCategories = getCategoryList('primary');
     <form action="processCreatePage.php" method="POST">
 
       <div class="form-group">
-        <label class="form-label" for="pageTitle">Page Title</label>
+        <label class="form-label" for="pageTitle"><?php echo lang('page_title'); ?></label>
         <input class="form-input" type="text" id="pageTitle" name="pageTitle"
-               placeholder="e.g., How to install PHP" required>
+               placeholder="<?php echo lang('page_title_placeholder'); ?>" required>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="primaryCategory">Primary Category</label>
+        <label class="form-label" for="primaryCategory"><?php echo lang('primary_category'); ?></label>
         <select class="form-select" id="primaryCategory" name="primaryCategory"
                 onchange="updateSecondaryCategories()" required>
-          <option value="">— Select primary category —</option>
+          <option value=""><?php echo lang('select_primary_category'); ?></option>
           <?php foreach ($primaryCategories as $category): ?>
           <option value="<?php echo htmlspecialchars($category['primaryCategory']); ?>">
             <?php echo htmlspecialchars($category['primaryCategory']); ?>
@@ -59,14 +59,14 @@ $primaryCategories = getCategoryList('primary');
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="secondaryCategory">Secondary Category</label>
+        <label class="form-label" for="secondaryCategory"><?php echo lang('secondary_category'); ?></label>
         <select class="form-select" id="secondaryCategory" name="secondaryCategory" required>
-          <option value="">— Select secondary category —</option>
+          <option value=""><?php echo lang('select_secondary_category'); ?></option>
         </select>
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="content">Content (Markdown)</label>
+        <label class="form-label" for="content"><?php echo lang('content_markdown'); ?></label>
         <div class="md-toolbar">
           <button type="button" class="md-btn" onclick="insertMd('**','**')"><b>B</b></button>
           <button type="button" class="md-btn" onclick="insertMd('*','*')"><em>I</em></button>
@@ -79,17 +79,17 @@ $primaryCategories = getCategoryList('primary');
           <button type="button" class="md-btn" onclick="insertMd('[','](url)')">Link</button>
         </div>
         <textarea class="form-textarea" id="content" name="content"
-                  placeholder="Use # for headers, **bold** for text, etc…" required></textarea>
+                  placeholder="<?php echo lang('content_placeholder'); ?>" required></textarea>
       </div>
 
       <div class="form-actions">
         <button type="submit" class="hbtn primary">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          Publish Wiki Page
+          <?php echo lang('publish_wiki_page'); ?>
         </button>
         <button type="button" class="hbtn" onclick="history.back()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-          Go Back
+          <?php echo lang('go_back'); ?>
         </button>
       </div>
 

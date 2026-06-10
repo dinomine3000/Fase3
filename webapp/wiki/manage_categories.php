@@ -2,6 +2,7 @@
 require_once( "../../Lib/lib.php" );
 require_once( "../../Lib/db.php" );
 require_once( "../../Lib/wikiLib.php" );
+include_once( "../../Lib/lang/translator.php" );
 
 if (!isset($_SESSION)) {
     session_start();
@@ -24,21 +25,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $isOrganizer) {
     if (isset($_POST['create_primary'])) {
         $name = $_POST['primary_name'] ?? '';
         if (!preg_match($catNameTest, $name)) {
-            $error = "Category name does not match the format requested.";
+            $error = lang('cat_name_format_error');
         } else if (createPrimaryCategory($name)) {
-            $message = "Primary category '" . htmlspecialchars($name) . "' created successfully.";
+            $message = lang('create_primary_category') . ': ' . htmlspecialchars($name);
         } else {
-            $error = "Failed to create primary category. It may already exist.";
+            $error = lang('cat_create_fail');
         }
     } elseif (isset($_POST['create_secondary'])) {
         $primary   = $_POST['parent_primary'] ?? '';
         $secondary = $_POST['secondary_name'] ?? '';
         if (!preg_match($catNameTest, $secondary)) {
-            $error = "Category name does not match format requested.";
+            $error = lang('subcat_name_format_error');
         } else if (createSecondaryCategory($primary, $secondary)){
-            $message = "Secondary category '" . htmlspecialchars($secondary) . "' added to '" . htmlspecialchars($primary) . "'.";
+            $message = lang('create_secondary_category') . ': ' . htmlspecialchars($secondary);
         } else {
-            $error = "Failed to create secondary category. Duplicate binding detected.";
+            $error = lang('subcat_create_fail');
         }
     }
 }
@@ -53,7 +54,7 @@ $primaryCategoriesData = getCategoryList('primary');
 <title>Manage Categories</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles/wiki.css?v=3">
+<link rel="stylesheet" href="styles/wiki.css?v=4">
 <link rel="stylesheet" href="styles/form.css">
 </head>
 <body>
@@ -63,7 +64,7 @@ $primaryCategoriesData = getCategoryList('primary');
 <?php include('./header.php')?>
 
 <div class="container-lg py-4">
-  <div class="section-heading">Category Architecture</div>
+  <div class="section-heading"><?php echo lang('category_architecture'); ?></div>
 
   <?php if (!empty($message)): ?>
     <div class="status-banner success mb-3">
@@ -83,18 +84,18 @@ $primaryCategoriesData = getCategoryList('primary');
 
     <?php if ($isAdmin): ?>
     <div class="form-card">
-      <span class="role-label">Admin only</span>
-      <div class="form-title">Create Primary Category</div>
+      <span class="role-label"><?php echo lang('admin_only'); ?></span>
+      <div class="form-title"><?php echo lang('create_primary_category'); ?></div>
       <form method="POST">
         <div class="form-group">
-          <label class="form-label" for="primary_name">Category Name</label>
+          <label class="form-label" for="primary_name"><?php echo lang('category_name'); ?></label>
           <input class="form-input" type="text" id="primary_name" name="primary_name"
-                 placeholder="e.g., Science" required pattern="[A-Za-z0-9_\-]+">
+                 placeholder="<?php echo lang('category_name_placeholder'); ?>" required pattern="[A-Za-z0-9_\-]+">
         </div>
         <div class="form-actions">
           <button type="submit" name="create_primary" class="hbtn primary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Create Primary
+            <?php echo lang('create_primary_btn'); ?>
           </button>
         </div>
       </form>
@@ -102,12 +103,12 @@ $primaryCategoriesData = getCategoryList('primary');
     <?php endif; ?>
 
     <div class="form-card">
-      <div class="form-title">Create Secondary Category</div>
+      <div class="form-title"><?php echo lang('create_secondary_category'); ?></div>
       <form method="POST">
         <div class="form-group">
-          <label class="form-label" for="parent_primary">Parent Primary Category</label>
+          <label class="form-label" for="parent_primary"><?php echo lang('parent_primary_category'); ?></label>
           <select class="form-select" id="parent_primary" name="parent_primary" required>
-            <option value="">— Select parent category —</option>
+            <option value=""><?php echo lang('select_parent_category'); ?></option>
             <?php foreach ($primaryCategoriesData as $catRow):
               $catName = $catRow['primaryCategory'];
             ?>
@@ -116,18 +117,18 @@ $primaryCategoriesData = getCategoryList('primary');
           </select>
         </div>
         <div class="form-group">
-          <label class="form-label" for="secondary_name">Sub-Category Name</label>
+          <label class="form-label" for="secondary_name"><?php echo lang('subcategory_name'); ?></label>
           <input class="form-input" type="text" id="secondary_name" name="secondary_name"
-                 placeholder="e.g., Quantum Mechanics" required pattern="[A-Za-z0-9_\-]+">
+                 placeholder="<?php echo lang('subcategory_name_placeholder'); ?>" required pattern="[A-Za-z0-9_\-]+">
         </div>
         <div class="form-actions">
           <button type="submit" name="create_secondary" class="hbtn primary">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Create Secondary
+            <?php echo lang('create_secondary_btn'); ?>
           </button>
           <button type="button" class="hbtn" onclick="history.back()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-            Go Back
+            <?php echo lang('go_back'); ?>
           </button>
         </div>
       </form>

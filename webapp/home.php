@@ -24,7 +24,7 @@ $shades = ['s1','s2','s3','s4','s5'];
 <title>Smiki — Home</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Outfit:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="wiki/styles/wiki.css?v=3">
+<link rel="stylesheet" href="wiki/styles/wiki.css?v=4">
 <link rel="stylesheet" href="wiki/styles/home.css">
 </head>
 <body>
@@ -36,30 +36,50 @@ $shades = ['s1','s2','s3','s4','s5'];
 <div class="container-lg py-4">
   <?php if ($isLoggedIn): ?>
   <div class="welcome-block">
-    <div class="welcome-name">Welcome back, <?php echo htmlspecialchars($name); ?></div>
+    <div class="welcome-name"><?php echo lang('welcome_back'); ?> <?php echo htmlspecialchars($name); ?></div>
     <?php if ($role): ?>
     <div class="welcome-role"><?php echo htmlspecialchars($role); ?></div>
     <?php endif; ?>
   </div>
   <?php endif; ?>
 
-  <div>
-    <?php 
-      $portalId = 400;
-      $portal2Id = 620;
-      
-      $url = "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=$portalId";
-      $response = file_get_contents($url);
-      $data = json_decode($response, true);
-      $portalPlayers = $data['response']['player_count'];
-      
-      $url = "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=$portal2Id";
-      $response = file_get_contents($url);
-      $data = json_decode($response, true);
-      $portal2Players = $data['response']['player_count'];
+  <?php
+    $portalId   = 400;
+    $portal2Id  = 620;
 
-      echo "Current Portal players: " . $portalPlayers . "<br>Current Portal 2 Players: " . $portal2Players;
-    ?>
+    $url = "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=$portalId";
+    $data = json_decode(file_get_contents($url), true);
+    $portalPlayers = $data['response']['player_count'] ?? 0;
+
+    $url = "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=$portal2Id";
+    $data = json_decode(file_get_contents($url), true);
+    $portal2Players = $data['response']['player_count'] ?? 0;
+  ?>
+  <div class="game-counters">
+    <div class="game-card">
+      <div class="game-banner">
+        <img src="wiki/img/Portal_Banner.jpg" alt="Portal">
+      </div>
+      <div class="game-info">
+        <div class="game-title">Portal</div>
+        <div class="game-players">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <?php echo number_format($portalPlayers); ?> <span><?php echo lang('playing_now'); ?></span>
+        </div>
+      </div>
+    </div>
+    <div class="game-card">
+      <div class="game-banner">
+        <img src="wiki/img/Portal2_Banner.jpg" alt="Portal 2">
+      </div>
+      <div class="game-info">
+        <div class="game-title">Portal 2</div>
+        <div class="game-players">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <?php echo number_format($portal2Players); ?> <span><?php echo lang('playing_now'); ?></span>
+        </div>
+      </div>
+    </div>
   </div>
 
   <?php
@@ -70,16 +90,16 @@ $shades = ['s1','s2','s3','s4','s5'];
   <a href="wiki/proposals.php" class="proposals-block" style="text-decoration:none">
     <div class="proposals-count"><?php echo (int)$pendingCount; ?></div>
     <div>
-      <div class="proposals-label">Pending proposals</div>
-      <div class="proposals-sub">Open moderation queue — click to review</div>
+      <div class="proposals-label"><?php echo lang('pending_proposals'); ?></div>
+      <div class="proposals-sub"><?php echo lang('open_moderation_queue'); ?></div>
     </div>
   </a>
   <?php endif; endif; ?>
 
-  <div class="section-heading">Categories</div>
+  <div class="section-heading"><?php echo lang('categories'); ?></div>
 
   <?php if (empty($primaryCategories)): ?>
-    <div class="no-results">No categories yet.</div>
+    <div class="no-results"><?php echo lang('no_categories'); ?></div>
   <?php else: ?>
   <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-2 mb-4">
     <?php foreach ($primaryCategories as $i => $cat):
@@ -107,7 +127,7 @@ $shades = ['s1','s2','s3','s4','s5'];
     authorizeUserByLevel($name, 'editor') ||
     authorizeUserByLevel($name, 'organizer')
   )): ?>
-  <div class="section-heading mt-4">Actions</div>
+  <div class="section-heading mt-4"><?php echo lang('actions'); ?></div>
   <div class="action-grid">
 
     <?php if (authorizeUserByLevel($name, 'user')): ?>
@@ -115,8 +135,8 @@ $shades = ['s1','s2','s3','s4','s5'];
       <div class="action-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
       </div>
-      <div class="action-label">View Files</div>
-      <div class="action-desc">Browse uploaded images and media files</div>
+      <div class="action-label"><?php echo lang('view_files'); ?></div>
+      <div class="action-desc"><?php echo lang('view_files_desc'); ?></div>
     </a>
     <?php endif; ?>
 
@@ -125,8 +145,8 @@ $shades = ['s1','s2','s3','s4','s5'];
       <div class="action-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
       </div>
-      <div class="action-label">Create a Page</div>
-      <div class="action-desc">Write and publish a new wiki article</div>
+      <div class="action-label"><?php echo lang('create_page'); ?></div>
+      <div class="action-desc"><?php echo lang('create_page_desc'); ?></div>
     </a>
     <?php endif; ?>
 
@@ -135,16 +155,16 @@ $shades = ['s1','s2','s3','s4','s5'];
       <div class="action-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       </div>
-      <div class="action-label">Manage Categories</div>
-      <div class="action-desc">Create primary and secondary category structure</div>
+      <div class="action-label"><?php echo lang('manage_categories'); ?></div>
+      <div class="action-desc"><?php echo lang('manage_categories_desc'); ?></div>
     </a>
 
     <a href="wiki/proposals.php" class="action-card" style="text-decoration:none">
       <div class="action-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
       </div>
-      <div class="action-label">Moderation Queue</div>
-      <div class="action-desc">Review and approve pending page edit proposals</div>
+      <div class="action-label"><?php echo lang('moderation_queue'); ?></div>
+      <div class="action-desc"><?php echo lang('moderation_queue_desc'); ?></div>
     </a>
     <?php endif; ?>
 
@@ -153,8 +173,8 @@ $shades = ['s1','s2','s3','s4','s5'];
       <div class="action-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
       </div>
-      <div class="action-label">Manage Website</div>
-      <div class="action-desc">Modify configured e-mail accounts and DB settings</div>
+      <div class="action-label"><?php echo lang('manage_website'); ?></div>
+      <div class="action-desc"><?php echo lang('manage_website_desc'); ?></div>
     </a>
     <?php endif; ?>
 
