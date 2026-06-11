@@ -1,4 +1,91 @@
 <?php 
+
+function getEmailConfig() {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    $conn = $GLOBALS['ligacao'];
+    mysqli_select_db($conn, $dataBaseName);
+    
+    $query = "SELECT `email`, `password`, `displayName` FROM `$dataBaseName`.`email-accounts` WHERE `id` = 4 LIMIT 1";
+    $result = mysqli_query($conn, $query);
+
+    $config = null;
+    if ($result != false) {
+        if ($row = mysqli_fetch_assoc($result)) {
+            $config = $row;
+        }
+        mysqli_free_result($result);
+    }
+    dbDisconnect();
+    return $config;
+}
+function getImageConfig() {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    $conn = $GLOBALS['ligacao'];
+    mysqli_select_db($conn, $dataBaseName);
+    
+    $query = "SELECT `destination`, `thumbType`, `maxFileSize`, `thumbWidth`, `thumbHeight` FROM `$dataBaseName`.`images-config` WHERE `id` = 1 LIMIT 1";
+    $result = mysqli_query($conn, $query);
+
+    $config = null;
+    if ($result != false) {
+        if ($row = mysqli_fetch_assoc($result)) {
+            $config = $row;
+        }
+        mysqli_free_result($result);
+    }
+    dbDisconnect();
+    return $config;
+}
+
+function setImageConfig($destinationFolder, $thumbType, $thumbWidth, $thumbHeight, $fileSize) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    $conn = $GLOBALS['ligacao'];
+    mysqli_select_db($conn, $dataBaseName);
+    
+    $query = "UPDATE `$dataBaseName`.`images-config` SET `destination` = ?, `thumbType` = ?, `maxFileSize` = ?, `thumbWidth` = ?, `thumbHeight` = ? WHERE `id` = 1";
+    $stmt = mysqli_prepare($conn, $query);
+    
+    if (!$stmt) {
+        dbDisconnect();
+        return false;
+    }
+
+    $thumbWidth = (int)$thumbWidth;
+    $thumbHeight = (int)$thumbHeight;
+
+    mysqli_stmt_bind_param($stmt, 'ssiii', $destinationFolder, $thumbType, $fileSize, $thumbWidth, $thumbHeight);
+    $success = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    
+    dbDisconnect();
+    return $success;
+}
+
+function setEmailConfig($email, $password, $displayName) {
+    dbConnect(ConfigFile);
+    $dataBaseName = $GLOBALS['configDataBase']->db;
+    $conn = $GLOBALS['ligacao'];
+    mysqli_select_db($conn, $dataBaseName);
+    
+    $query = "UPDATE `$dataBaseName`.`email-accounts` SET `email` = ?, `password` = ?, `displayName` = ? WHERE `id` = 4";
+    $stmt = mysqli_prepare($conn, $query);
+    
+    if (!$stmt) {
+        dbDisconnect();
+        return false;
+    }
+
+    mysqli_stmt_bind_param($stmt, 'sss', $email, $password, $displayName);
+    $success = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    
+    dbDisconnect();
+    return $success;
+}
+
 function getResultsMatching($testString, $desiredColumn = '', $tableName = 'auth-basic', $columnName = 'name', $maxResults = 5) {
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;

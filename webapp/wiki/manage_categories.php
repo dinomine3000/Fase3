@@ -14,7 +14,7 @@ $isOrganizer = authorizeUserByLevel($username, 'organizer');
 
 if (!$isOrganizer) {
     header('HTTP/1.1 403 Forbidden');
-    die("Access Denied: You do not have permissions to manage categories.");
+    die("Access Denied: You do not have permissions to access this location.");
 }
 
 $message = '';
