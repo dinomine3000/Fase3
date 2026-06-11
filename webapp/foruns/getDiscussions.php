@@ -3,6 +3,8 @@
 include_once("../../Lib/lib.php");
 include_once("../../Lib/wikiLib.php");
 
+if (!isset($_SESSION)) session_start();
+
 header('Content-Type: application/json; charset=utf-8');
 
 try {
@@ -11,9 +13,16 @@ try {
 
     $discussions = getForumDiscussions($primaryCategory, $secondaryCategory);
 
+    // Obtém dados do utilizador e permissões de moderação
+    $currentUserId = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
+    $userRole = isset($_SESSION['role']) ? (int)$_SESSION['role'] : 0;
+    $isModerator = ($userRole === 4 || $userRole === 6);
+
     echo json_encode([
         'status' => 'success',
         'count'  => count($discussions),
+        'currentUserId' => $currentUserId,
+        'isModerator' => $isModerator,
         'data'   => $discussions
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 

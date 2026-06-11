@@ -28,13 +28,12 @@ if ($idPost <= 0) {
     exit;
 }
 
-// Executa o toggle na lib ('liked', 'unliked' ou false)
 $action = toggleForumLike($idUser, $idPost);
 
 if ($action) {
     echo json_encode([
         'status' => 'success',
-        'action' => $action, // devolve 'liked' ou 'unliked' para o JS atualizar o botão dinamicamente
+        'action' => $action, 
         'message' => $action === 'liked' ? 'Gosto adicionado.' : 'Gosto removido.'
     ]);
 } else {

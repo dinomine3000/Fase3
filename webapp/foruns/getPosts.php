@@ -17,12 +17,26 @@ if ($idDiscussion <= 0) {
 
 try {
     $currentUserId = getActiveUserIdFromAuth();
-
+    if ($currentUserId <= 0 && isset($_SESSION['id'])) {
+        $currentUserId = (int)$_SESSION['id'];
+    }
+    
     $posts = getForumPosts($idDiscussion, $currentUserId);
+
+    $userRole = 0;
+    if (isset($_SESSION['role'])) {
+        $userRole = (int)$_SESSION['role'];
+    } elseif (isset($_SESSION['idRole'])) {
+        $userRole = (int)$_SESSION['idRole'];
+    }
+
+    $isModerator = ($userRole === 4 || $userRole === 6);
 
     echo json_encode([
         'status' => 'success',
-        'data'   => $posts
+        'currentUserId' => $currentUserId,
+        'isModerator' => $isModerator,
+        'data' => $posts
     ], JSON_UNESCAPED_UNICODE);
 
 } catch (Exception $e) {

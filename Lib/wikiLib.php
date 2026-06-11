@@ -862,26 +862,32 @@ function getForumDiscussions($primaryCategory = null, $secondaryCategory = null)
     $dataBaseName = $GLOBALS['configDataBase']->db;
     mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
 
-    $query = "SELECT d.*, u.name as author, 
-              (SELECT COUNT(*) FROM `$dataBaseName`.`forum_posts` p WHERE p.idDiscussion = d.idDiscussion) as total_replies
+    $query = "SELECT d.*, u.name as author,
+              (SELECT COUNT(*) FROM `$dataBaseName`.`forum_posts` p WHERE p.idDiscussion = d.idDiscussion) - 1 as total_replies
               FROM `$dataBaseName`.`forum_discussions` d
               JOIN `$dataBaseName`.`auth-basic` u ON d.idUser = u.idUser";
 
     $whereClauses = [];
-    if (!empty($primaryCategory)) {
+
+    if ($primaryCategory !== null && $primaryCategory !== '') {
         $pCatSafe = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryCategory);
         $whereClauses[] = "d.primaryCategory = '$pCatSafe'";
-        if (!empty($secondaryCategory)) {
-            $sCatSafe = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
-            $whereClauses[] = "d.secondaryCategory = '$sCatSafe'";
-        }
     }
 
-    if (!empty($whereClauses)) {
+    if ($secondaryCategory !== null && $secondaryCategory !== '') {
+        $sCatSafe = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
+        $whereClauses[] = "d.secondaryCategory = '$sCatSafe'";
+    }
+
+    if (count($whereClauses) > 0) {
         $query .= " WHERE " . implode(" AND ", $whereClauses);
     }
 
-    $query .= " ORDER BY d.isSticky DESC, d.last_posted_at DESC";
+    $query .= " ORDER BY (
+        SELECT COALESCE(MAX(p.created_at), d.created_at) 
+        FROM `$dataBaseName`.`forum_posts` p 
+        WHERE p.idDiscussion = d.idDiscussion
+    ) DESC";
 
     $result = mysqli_query($GLOBALS['ligacao'], $query);
     $discussions = [];
