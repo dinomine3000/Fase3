@@ -30,6 +30,9 @@ return [
     "err_bad_email"               => "Email already exists.",
     "err_bad_repeat"              => "Passwords do not match.",
     "err_invalid"                 => "Invalid values submitted.",
+    "err_username_format"         => "At least 2 characters. Only letters, numbers, and dots allowed.",
+    "err_email_format"            => "Enter a valid email address, e.g. user@example.com",
+    "err_password_format"         => "At least 10 characters. Allowed: letters, numbers, and . - # * ,",
 
     // Header
     "portal"                      => "Portal",

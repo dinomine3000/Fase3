@@ -123,6 +123,25 @@ function toggleTheme() {
   html.setAttribute('data-theme', next);
   localStorage.setItem('smiki-theme', next);
 }
+
+(function () {
+  function setupValidation(id, emptyMsg, formatMsg) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('invalid', function () {
+      if (el.validity.valueMissing) {
+        el.setCustomValidity(emptyMsg);
+      } else {
+        el.setCustomValidity(formatMsg);
+      }
+    });
+    el.addEventListener('input', function () { el.setCustomValidity(''); });
+  }
+
+  setupValidation('username', <?php echo json_encode(lang('fill_field')); ?>, <?php echo json_encode(lang('err_username_format')); ?>);
+  setupValidation('email',    <?php echo json_encode(lang('fill_field')); ?>, <?php echo json_encode(lang('err_email_format')); ?>);
+  setupValidation('password', <?php echo json_encode(lang('fill_field')); ?>, <?php echo json_encode(lang('err_password_format')); ?>);
+})();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

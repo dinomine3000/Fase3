@@ -30,6 +30,9 @@ return [
     "err_bad_email"               => "E-mail já existe.",
     "err_bad_repeat"              => "As passwords não coincidem.",
     "err_invalid"                 => "Valores inválidos submetidos.",
+    "err_username_format"         => "Mínimo 2 caracteres. Apenas letras, números e pontos são permitidos.",
+    "err_email_format"            => "Introduza um e-mail válido, ex: utilizador@exemplo.com",
+    "err_password_format"         => "Mínimo 10 caracteres. Permitidos: letras, números e . - # * ,",
 
     // Header
     "portal"                      => "Portal",
