@@ -25,13 +25,17 @@ if ($_FILES['userFile']['error'] != 0) {
 } else {
     $srcName        = $_FILES['userFile']['name'];
     $configurations = getConfiguration();
+    $maxFileSize    = (int)$configurations['maxFileSize'];
     $dstDir         = $configurations['destination'];
     $src            = $_FILES['userFile']['tmp_name'];
     $dst            = $dstDir . DIRECTORY_SEPARATOR . $srcName;
 
-    if (copy($src, $dst) === false) {
+    if ($maxFileSize > 0 && $_FILES['userFile']['size'] > $maxFileSize) {
+        $maxMb = round($maxFileSize / 1048576, 1);
+        $logs[] = ['type' => 'error', 'text' => "File exceeds the maximum allowed size of {$maxMb} MB."];
+    } elseif (copy($src, $dst) === false) {
         $logs[] = ['type' => 'error', 'text' => "Could not write '$src' to '$dst'"];
-    } else {
+    } else { // copy succeeded
         unlink($src);
         $logs[] = ['type' => 'success', 'text' => "File received and stored."];
 

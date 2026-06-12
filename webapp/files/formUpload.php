@@ -42,6 +42,7 @@ $_langToggleUrl = '?' . http_build_query($_qp);
   transition: border-color .2s, background .25s, color .2s;
 }
 .file-drop:hover, .file-drop.dragover { border-color: var(--accent); color: var(--text); }
+.file-drop.size-error { border-color: rgba(180,50,50,0.5); }
 .file-drop svg { width: 26px; height: 26px; color: var(--faint); }
 .file-drop-text { font-size: 13px; }
 .file-drop-hint { font-family: 'Outfit', sans-serif; font-size: 10px; color: var(--faint); }
@@ -138,9 +139,32 @@ function toggleTheme() {
   const drop  = document.getElementById('fileDrop');
   const nameEl = document.getElementById('fileName');
 
+  var maxBytes = <?php echo $maxBytes; ?>;
+
+  function sizeError() {
+    var maxMb = (maxBytes / 1048576).toFixed(1);
+    drop.classList.add('size-error');
+    nameEl.style.color = 'var(--color-err, #b44)';
+    nameEl.textContent = 'File too large — max ' + maxMb + ' MB';
+    nameEl.style.display = 'block';
+    drop.classList.remove('has-file');
+  }
+
+  function clearError() {
+    drop.classList.remove('size-error');
+    nameEl.style.color = '';
+  }
+
   function showName() {
+    clearError();
     if (input.files && input.files.length) {
-      nameEl.textContent = input.files[0].name;
+      var file = input.files[0];
+      if (maxBytes > 0 && file.size > maxBytes) {
+        sizeError();
+        input.value = '';
+        return;
+      }
+      nameEl.textContent = file.name;
       drop.classList.add('has-file');
     } else {
       nameEl.textContent = '';
@@ -148,6 +172,13 @@ function toggleTheme() {
     }
   }
   input.addEventListener('change', showName);
+
+  document.querySelector('form[name="FormUpload"]').addEventListener('submit', function (e) {
+    if (input.files && input.files.length && maxBytes > 0 && input.files[0].size > maxBytes) {
+      e.preventDefault();
+      sizeError();
+    }
+  });
 
   ['dragenter', 'dragover'].forEach(function (ev) {
     drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('dragover'); });
