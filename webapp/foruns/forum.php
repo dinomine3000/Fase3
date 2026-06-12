@@ -23,7 +23,7 @@ $_langToggleUrl = '?' . http_build_query($_qp);
 
 <script>(function(){const s=localStorage.getItem('smiki-theme')||'light';document.documentElement.setAttribute('data-theme',s);})();</script>
 
-<?php include('../wiki/header.php'); ?>
+<?php include('./header.php'); ?>
 
 <div class="container-lg py-4">
   <?php include __DIR__ . '/forum-embed.php'; ?>
