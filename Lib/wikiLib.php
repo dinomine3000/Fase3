@@ -579,7 +579,9 @@ function sendNotificationEmails($subscribers, $subject, $message) {
         return;
     }
 
+    dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
+    mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
     $emailId = 4;
     $queryString = "SELECT * FROM `$dataBaseName`.`email-accounts` WHERE `id`=$emailId";
     $queryResult = mysqli_query($GLOBALS['ligacao'], $queryString);
@@ -606,7 +608,7 @@ function sendNotificationEmails($subscribers, $subject, $message) {
                 $password,
                 $fromEmail,
                 $fromName,
-                $subscriber['name'] . " <" . $subscriber['email'] . ">",
+                $subscriber,
                 NULL,
                 NULL,
                 $subject,
