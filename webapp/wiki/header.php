@@ -16,16 +16,19 @@ $_langToggleUrl = '?' . http_build_query($_qp);
   <div class="container-lg py-0">
     <div class="d-flex align-items-center gap-3" style="height:56px">
       <a class="logo" href="/works/webapp/home.php"><?php echo lang("portal");?> <span class="logo-wiki"><?php echo lang("wiki");?></span></a>
-      <div class="search-outer">
+      
+      <div class="search-outer" style="position: relative;">
         <div class="search-wrap">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="searchInput" placeholder="<?php echo lang("search_wiki");?>"
-                 oninput="searchAllHeader(this.value,'hdr-suggest','wiki/')"
-                 onblur="setTimeout(()=>{let s=document.getElementById('hdr-suggest');if(s){s.innerHTML='';s.classList.remove('has-results');}},150)"
-                 onkeydown="if(event.key==='Enter'&&this.value.trim())location.href='/works/webapp/wiki/search.php?q='+encodeURIComponent(this.value.trim())">
+                 oninput="searchAllHeader(this.value, 'hdr-suggest', '/works/webapp/wiki/')"
+                 onblur="setTimeout(()=>{let s=document.getElementById('hdr-suggest');if(s){s.innerHTML='';s.classList.remove('has-results');}}, 300)"
+                 onkeydown="if(event.key==='Enter'&&this.value.trim())location.href='/works/webapp/wiki/search.php?q='+encodeURIComponent(this.value.trim())"
+                 autocomplete="off">
         </div>
         <div id="hdr-suggest" class="search-suggest"></div>
       </div>
+
       <a href="<?php echo $_langToggleUrl; ?>" class="lang-toggle" title="<?php echo lang('switch_language'); ?>" style="text-decoration:none"><?php echo strtoupper($_langSwitch); ?></a>
       <button class="theme-toggle" onclick="toggleTheme()" title="<?php echo lang("toggle_theme");?>">
         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>

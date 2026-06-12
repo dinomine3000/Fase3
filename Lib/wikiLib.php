@@ -268,20 +268,7 @@ function writeWikiPage($primaryCategory, $secondaryCategory, $pageTitle, $conten
 
     // Send notifications if the database write succeeded
     if ($success) {
-        $notifyQuery = "SELECT u.`name`, u.`email` 
-                        FROM `$dataBaseName`.`category-notifications` n
-                        JOIN `$dataBaseName`.`auth-basic` u ON n.`userId` = u.`idUser`
-                        WHERE n.`secondaryCategory` = '$secondaryCategory' AND u.`email` IS NOT NULL AND u.`email` != ''";
-        
-        $notifyResult = mysqli_query($GLOBALS['ligacao'], $notifyQuery);
-        $subscribers = [];
-        if ($notifyResult) {
-            while ($row = mysqli_fetch_assoc($notifyResult)) {
-                $subscribers[] = $row;
-            }
-            mysqli_free_result($notifyResult);
-        }
-
+        $subscribers = getNotificationEmailsByCategory($secondaryCategory);
         if (!empty($subscribers)) {
             $flags[] = FILTER_NULL_ON_FAILURE;
             $serverName = filter_input(INPUT_SERVER, 'SERVER_NAME', FILTER_UNSAFE_RAW, $flags);
@@ -479,6 +466,11 @@ function authorizeUserByLevel($username, $requiredRoleName) {
     return ($userLevel >= $requiredLevel);
 }
 function getUserRoleInfo($username) {
+    if(!isset($username)) return [
+        'friendlyName' => 'guest',
+        'roleLevel' => 0,
+        'idRole' => '0',
+    ];
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
     mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
@@ -557,21 +549,13 @@ function processPageChange($username, $pageTitle, $newContent, $visibility) {
 
     // 4. Send Notifications if the direct update was successful
     if ($success && $isDirectApply) {
-        $notifyQuery = "SELECT u.`name`, u.`email` 
-                        FROM `$dataBaseName`.`page-notifications` n
-                        JOIN `$dataBaseName`.`auth-basic` u ON n.`userId` = u.`idUser`
-                        WHERE n.`pageTitle` = '$pageTitle' AND u.`email` IS NOT NULL AND u.`email` != ''";
-        
-        $notifyResult = mysqli_query($GLOBALS['ligacao'], $notifyQuery);
-        $subscribers = [];
-        if ($notifyResult) {
-            while ($row = mysqli_fetch_assoc($notifyResult)) {
-                $subscribers[] = $row;
-            }
-            mysqli_free_result($notifyResult);
-        }
 
-        if (!empty($subscribers)) {
+        $pageSubscribers = getNotificationEmailsByPage($pageTitle);
+        $metaData = getPageMetaData($pageTitle);
+        $categorySubscribers = getNotificationEmailsByCategory($metaData['secondaryCategory']);
+        $allSubscribers = array_unique(array_merge($pageSubscribers, $categorySubscribers));
+
+        if (!empty($allSubscribers)) {
             $flags[] = FILTER_NULL_ON_FAILURE;
             $serverName = filter_input(INPUT_SERVER, 'SERVER_NAME', FILTER_UNSAFE_RAW, $flags);
             $serverPort = 80;
@@ -582,7 +566,7 @@ function processPageChange($username, $pageTitle, $newContent, $visibility) {
             $Subject = "Wiki Page Updated: " . $pageTitle;
             $Message = "The page '" . $pageTitle . "' has been updated by " . $username . ".\n\nYou can view the changes here:\n" . $link;
 
-            sendNotificationEmails($subscribers, $Subject, $Message);
+            sendNotificationEmails($allSubscribers, $Subject, $Message);
         }
     }
 
@@ -900,8 +884,11 @@ function moderateProposal($changeId, $action) {
     $changeId = (int)$changeId;
     $success = false;
 
-    // 1. Fetch proposal details first
-    $query = "SELECT `pageTitle`, `editorId`, `newContent` FROM `$dataBaseName`.`page-changes` WHERE `changeId` = $changeId LIMIT 1";
+    $query = "SELECT c.`pageTitle`, c.`editorId`, u.`name`, c.`newContent` 
+          FROM `$dataBaseName`.`page-changes` c
+          JOIN `$dataBaseName`.`auth-basic` u ON c.`editorId` = u.`idUser`
+          WHERE c.`changeId` = $changeId 
+          LIMIT 1";
     $result = mysqli_query($GLOBALS['ligacao'], $query);
 
     if ($result && mysqli_num_rows($result) > 0) {
@@ -910,6 +897,7 @@ function moderateProposal($changeId, $action) {
 
         $pageTitle  = mysqli_real_escape_string($GLOBALS['ligacao'], $proposal['pageTitle']);
         $editorId   = (int)$proposal['editorId'];
+        $editorName   = $proposal['name'];
         $newContent = mysqli_real_escape_string($GLOBALS['ligacao'], $proposal['newContent']);
 
         if ($action === 'accept') {
@@ -917,6 +905,7 @@ function moderateProposal($changeId, $action) {
             $updatePage = "UPDATE `$dataBaseName`.`page` SET `content` = '$newContent' WHERE `pageTitle` = '$pageTitle'";
             if (mysqli_query($GLOBALS['ligacao'], $updatePage)) {
                 // Reward the contributor with a point
+                notifyPageChange($pageTitle, $editorName);
                 mysqli_query($GLOBALS['ligacao'], "UPDATE `$dataBaseName`.`auth-basic` SET `contributions` = `contributions` + 1 WHERE `idUser` = $editorId");
                 $success = true;
             }
@@ -935,6 +924,27 @@ function moderateProposal($changeId, $action) {
 
     dbDisconnect();
     return $success;
+}
+
+function notifyPageChange($pageTitle, $usernameResponsible){
+    $pageSubscribers = getNotificationEmailsByPage($pageTitle);
+    $metaData = getPageMetaData($pageTitle);
+    $categorySubscribers = getNotificationEmailsByCategory($metaData['secondaryCategory']);
+    $allSubscribers = array_unique(array_merge($pageSubscribers, $categorySubscribers));
+
+    if (!empty($allSubscribers)) {
+        $flags[] = FILTER_NULL_ON_FAILURE;
+        $serverName = filter_input(INPUT_SERVER, 'SERVER_NAME', FILTER_UNSAFE_RAW, $flags);
+        $serverPort = 80;
+        $name = webAppName();
+        $baseUrl = "http://" . $serverName . ":" . $serverPort;
+        $link = $baseUrl . $name . "viewPage.php?pageTitle=" . urlencode($pageTitle);
+
+        $Subject = "Wiki Page Updated: " . $pageTitle;
+        $Message = "The page '" . $pageTitle . "' has been updated by " . $usernameResponsible . ".\n\nYou can view the changes here:\n" . $link;
+
+        sendNotificationEmails($allSubscribers, $Subject, $Message);
+    }
 }
 
 

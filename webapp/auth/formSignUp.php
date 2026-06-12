@@ -34,7 +34,6 @@ $error = filter_input($_INPUT_METHOD, 'error', FILTER_UNSAFE_RAW, $flags);
   <div class="form-card" style="width:100%;max-width:400px">
 
     <div class="form-title"><?php echo lang("create_account");?></div>
-
     <?php if (isset($error) && $error !== ''): ?>
       <div class="status-banner error" style="margin-bottom:1rem">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -56,19 +55,19 @@ $error = filter_input($_INPUT_METHOD, 'error', FILTER_UNSAFE_RAW, $flags);
 
       <div class="form-group">
         <label class="form-label" for="username"><?php echo lang("username");?></label>
-        <input class="form-input" required type="text" id="username" name="username"
+        <input class="form-input" required pattern="[A-Za-z0-9.]{2,}.*" type="text" id="username" name="username"
                placeholder="<?php echo lang('choose_username'); ?>" autofocus>
       </div>
 
       <div class="form-group">
         <label class="form-label" for="email"><?php echo lang('email'); ?></label>
-        <input class="form-input" required type="text" id="email" name="email"
+        <input class="form-input" pattern="[^@]+@[^@]+\.[^@]+" required type="text" id="email" name="email"
                placeholder="<?php echo lang('email_placeholder'); ?>">
       </div>
 
       <div class="form-group">
         <label class="form-label" for="password"><?php echo lang('password'); ?></label>
-        <input class="form-input" required type="password" id="password" name="password"
+        <input class="form-input" required pattern="^[A-Za-z0-9.\-#*,]{10,}$" type="password" id="password" name="password"
                placeholder="<?php echo lang('choose_password'); ?>">
       </div>
 

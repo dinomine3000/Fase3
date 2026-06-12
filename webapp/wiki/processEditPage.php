@@ -29,7 +29,6 @@ if (empty($title) || $newContent === null) {
     exit();
 }
 
-// Call your custom dual-route storage function
 $success = processPageChange($_SESSION['username'], $title, $newContent, $visibility);
 
 ?>

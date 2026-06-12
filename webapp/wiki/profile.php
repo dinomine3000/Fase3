@@ -21,45 +21,47 @@ if(!isset($pageUsername)){
     exit();
 }
 
+$clientRole = getUserRoleInfo($clientName);
+$pageRole = getUserRoleInfo($pageUsername);
+
+//change roles
 $submitted_role = filter_input( INPUT_POST, 'new_role', FILTER_UNSAFE_RAW, $flags);
 $isModerator = authorizeUserByLevel($clientName, 'moderator');
 $canChangeRoles = $isLoggedIn && $isModerator && $clientName !== $pageUsername;
-if(isset($submitted_role) && $canChangeRoles){
-    $rolePage = getUserRoleInfo($pageUsername);
-    $roleClient = $clientName == null ? 0 : getUserRoleInfo($clientName);
-    if ($rolePage['roleLevel'] < $roleClient['roleLevel']) {
+if(isset($submitted_role) && $canChangeRoles){;
+    if ($pageRole['roleLevel'] < $clientRole['roleLevel']) {
         changeUserInfo($pageUsername, "idRole", $submitted_role);
     }
 }
 
+//change bio
 $newBio = filter_input( INPUT_POST, 'new_bio', FILTER_UNSAFE_RAW, $flags);
 if (isset($newBio) && $isLoggedIn && $pageUsername === $clientName) {
     changeUserInfo($pageUsername, "bio", mb_substr($newBio, 0, 256, 'UTF-8'));
 }
 
+//ban / unban
 $newBan = filter_input( INPUT_POST, 'banning', FILTER_UNSAFE_RAW, $flags);
 if ($isModerator && isset($newBan) && $pageUsername !== $clientName) {
-    $rolePage = getUserRoleInfo($pageUsername);
-    $roleClient = $clientName == null ? 0 : getUserRoleInfo($clientName);
-    if ($rolePage['roleLevel'] < $roleClient['roleLevel']) {
+    if ($pageRole['roleLevel'] < $clientRole['roleLevel']) {
         changeUserInfo($pageUsername, "isBanned", $newBan);
     }
 }
 
+$pageRole = getUserRoleInfo($pageUsername);
 $user = getUserInfo($pageUsername);
 if($user === null || !isset($user)){
     header("Location: ../index.php");
     exit();
 }
-$user['role'] = getUserRoleInfo($pageUsername);
 
-$canBan = $isModerator && $pageUsername !== $clientName && $user['role']['roleLevel'] < getUserRoleInfo($clientName)['roleLevel'];
+$canBan = $isModerator && $pageUsername !== $clientName && $pageRole['roleLevel'] < getUserRoleInfo($clientName)['roleLevel'];
 
 $availableRoles = [];
 if ($canChangeRoles) {
-    $rawRoles = getAvailableRolesUpToUser($pageUsername);
+    $rawRoles = getAvailableRolesUpToUser($clientName);
     foreach ($rawRoles as $r) {
-        if ($r['friendlyName'] !== $user['role']['friendlyName']) {
+        if ($r['idRole'] !== $clientRole['idRole']) {
             $availableRoles[] = $r;
         }
     }
@@ -96,7 +98,7 @@ $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'un
     <div>
       <div class="profile-name"><?php echo htmlspecialchars($pageUsername); ?></div>
       <div class="profile-meta">
-        <span class="art-tag"><?php echo htmlspecialchars($user['role']['friendlyName']); ?></span>
+        <span class="art-tag"><?php echo htmlspecialchars($pageRole['friendlyName']); ?></span>
         <span class="profile-status <?php echo $statusClass; ?>"><?php echo $status_label; ?></span>
       </div>
     </div>
@@ -163,12 +165,14 @@ $statusClass  = $user['isBanned'] ? 'banned' : ($user['active'] ? 'active' : 'un
       <div class="form-group">
         <label class="form-label" for="new_role"><?php echo lang('assign_role'); ?></label>
         <select class="form-select" name="new_role" id="new_role">
-          <?php foreach ($availableRoles as $r): ?>
-          <option value="<?php echo htmlspecialchars($r['idRole']); ?>">
+        <?php foreach ($availableRoles as $r): 
+            $isSelected = ($r['idRole'] == $pageRole['idRole']) ? 'selected' : ''; 
+          ?>
+          <option value="<?php echo htmlspecialchars($r['idRole']); ?>" <?php echo $isSelected; ?>>
             <?php echo htmlspecialchars($r['friendlyName']); ?>
           </option>
-          <?php endforeach; ?>
-        </select>
+        <?php endforeach; ?>
+      </select>
       </div>
       <div class="form-actions">
         <button type="submit" class="hbtn primary">
