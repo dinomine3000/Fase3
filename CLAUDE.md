@@ -52,6 +52,7 @@ webapp/
     search.php           ← DB-backed full-text search (categories, subcategories, pages, users)
     proposals.php        ← moderation queue (organizer role)
     manage_categories.php← category management (organizer/admin)
+    manage_db.php        ← system config: email + image settings (admin only)
     profile.php          ← user profile page (own profile: bio edit + role/ban controls)
     processSearchWiki.php← JSON AJAX endpoint: search categories, subcategories, pages
     processSearchUsers.php← JSON AJAX endpoint: search users by name

@@ -106,3 +106,8 @@
   margin-bottom: 0.5rem;
   display: inline-block;
 }
+
+/* Side-by-side field pair */
+.form-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+}

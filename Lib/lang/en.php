@@ -119,7 +119,7 @@ return [
     "create_primary_btn"          => "Create Primary",
     "create_secondary_category"   => "Create Secondary Category",
     "parent_primary_category"     => "Parent Primary Category",
-    "select_parent_category"      => "— Select parent category —",
+    "select_parent_category"      => "— Select Primary Category —",
     "subcategory_name"            => "Sub-Category Name",
     "subcategory_name_placeholder" => "e.g., Quantum Mechanics",
     "create_secondary_btn"        => "Create Secondary",

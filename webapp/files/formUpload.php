@@ -97,12 +97,6 @@ $_langToggleUrl = '?' . http_build_query($_qp);
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="description"><?php echo lang('description'); ?></label>
-        <textarea class="form-textarea" id="description" name="description" rows="4"
-                  maxlength="512" placeholder="<?php echo lang('description_placeholder'); ?>"></textarea>
-      </div>
-
-      <div class="form-group">
         <label class="form-label" for="userFile"><?php echo lang('file_label'); ?></label>
         <input type="hidden" name="MAX_FILE_SIZE" value="<?php echo $maxBytes; ?>">
         <label class="file-drop" id="fileDrop" for="userFile">
