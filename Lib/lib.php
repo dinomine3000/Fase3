@@ -49,30 +49,22 @@ function getBaseUrl(){
  * @return bool True if the user has the role, false otherwise.
  */
 function userHasRole($conn, $userId, $roleName): Bool {
-    // Backticks ` are required because your table names contain hyphens (-)
     $sql = "SELECT COUNT(*) 
             FROM `auth-permissions` p
             JOIN `auth-roles` r ON p.idRole = r.idRole
             WHERE p.idUser = ? AND r.friendlyName = ?";
-
-    // Prepare the SQL statement
     $stmt = mysqli_prepare($conn, $sql);
     
     if ($stmt) {
-        // "is" means: 1st parameter is an Integer ($userId), 2nd is a String ($roleName)
+        // is - integer, string
         mysqli_stmt_bind_param($stmt, "is", $userId, $roleName);
         
-        // Run the query
         mysqli_stmt_execute($stmt);
         
-        // Bind the result count to a variable
         mysqli_stmt_bind_result($stmt, $count);
         mysqli_stmt_fetch($stmt);
         
-        // Close the statement
         mysqli_stmt_close($stmt);
-        
-        // If the count is greater than 0, they have the role!
         return $count > 0;
     }
     

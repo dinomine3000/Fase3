@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: May 23, 2026 at 12:34 AM
+-- Generation Time: Jun 13, 2026 at 12:55 AM
 -- Server version: 10.4.22-MariaDB
 -- PHP Version: 8.1.2
 
@@ -38,15 +38,17 @@ CREATE TABLE `auth-basic` (
   `active` tinyint(1) NOT NULL,
   `isBanned` tinyint(1) NOT NULL DEFAULT 0,
   `contributions` int(11) NOT NULL DEFAULT 0,
-  `idRole` int(11) DEFAULT 1
+  `idRole` int(11) DEFAULT 1,
+  `bio` text COLLATE utf8_unicode_ci DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
 -- Dumping data for table `auth-basic`
 --
 
-INSERT INTO `auth-basic` (`idUser`, `name`, `password`, `email`, `active`, `isBanned`, `contributions`, `idRole`) VALUES
-(1, 'dindin', 'umapalavrapasse', 'u.agente.lego.rafa@gmail.com', 1, 0, 17, 6);
+INSERT INTO `auth-basic` (`idUser`, `name`, `password`, `email`, `active`, `isBanned`, `contributions`, `idRole`, `bio`) VALUES
+(1, 'dindin', 'umapalavrapasse', 'u.agente.lego.rafa@gmail.com', 1, 0, 25, 6, 'I am quite fond of **Shadow Slave**'),
+(2, 'Nr2win', 'E*#2005rafa', 'nr2windows.gamebuds@gmail.com', 1, 0, 4, 3, 'I quite enjoy **Lord of Mysteries**');
 
 -- --------------------------------------------------------
 
@@ -118,6 +120,10 @@ CREATE TABLE `category-primary` (
 --
 
 INSERT INTO `category-primary` (`primaryCategory`) VALUES
+('GameObjects'),
+('Games'),
+('Lore'),
+('Speedruns'),
 ('test1'),
 ('test2');
 
@@ -165,29 +171,7 @@ CREATE TABLE `email-accounts` (
 --
 
 INSERT INTO `email-accounts` (`id`, `accountName`, `smtpServer`, `port`, `useSSL`, `timeout`, `loginName`, `password`, `email`, `displayName`) VALUES
-(4, 'Working', 'smtp.gmail.com', 465, 1, 30, 'skiperpedronuno@gmail.com', 'gcyqlgakmpwixuwk', 'skiperpedronuno@gmail.com', 'Main Mail');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `email-contacts`
---
-
-CREATE TABLE `email-contacts` (
-  `id` int(11) NOT NULL,
-  `displayName` varchar(64) COLLATE utf8_unicode_ci NOT NULL,
-  `email` varchar(128) COLLATE utf8_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
-
---
--- Dumping data for table `email-contacts`
---
-
-INSERT INTO `email-contacts` (`id`, `displayName`, `email`) VALUES
-(1, 'Carlos Gonçalves - IPL', 'cgoncalves@deetc.isel.ipl.pt'),
-(2, 'Carlos Gonçalves - ISEL', 'carlos.goncalves@isel.pt'),
-(3, 'Carlos Gonçalves - IPL', 'cgoncalves@deetc.isel.ipl.pt'),
-(4, 'Carlos Gonçalves - ISEL', 'carlos.goncalves@isel.pt');
+(4, 'Working', 'smtp.gmail.com', 465, 1, 30, 'skiperpedronuno@gmail.com', 'gcyqlgakmpwixuwk', 'skiperpedronuno@gmail.com', 'Portal Mail');
 
 -- --------------------------------------------------------
 
@@ -201,7 +185,6 @@ CREATE TABLE `forum_discussions` (
   `slug` varchar(128) NOT NULL,
   `idUser` int(11) NOT NULL,
   `primaryCategory` varchar(64) NOT NULL,
-  `secondaryCategory` varchar(64) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `last_posted_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `isSticky` tinyint(1) NOT NULL DEFAULT 0
@@ -211,10 +194,10 @@ CREATE TABLE `forum_discussions` (
 -- Dumping data for table `forum_discussions`
 --
 
-INSERT INTO `forum_discussions` (`idDiscussion`, `title`, `slug`, `idUser`, `primaryCategory`, `secondaryCategory`, `created_at`, `last_posted_at`, `isSticky`) VALUES
-(1, 'Bem-vindo ao novo Fórum de Discussão!', 'bem-vindo-ao-novo-forum-de-discussao', 1, 'test1', 'secondary1', '2026-05-21 17:26:30', '2026-05-21 17:26:30', 1),
-(2, 'Como integrar Markdown com as páginas Wiki?', 'como-integrar-markdown-com-as-paginas-wiki', 1, 'test1', 'secondary2', '2026-05-21 17:26:30', '2026-05-21 17:26:30', 0),
-(3, 'Suporte Geral e testes para a Categoria Grande', 'suporte-geral-e-testes-para-a-categoria-grande', 1, 'test2', 'secondaryBIg', '2026-05-21 17:26:30', '2026-05-21 17:26:30', 0);
+INSERT INTO `forum_discussions` (`idDiscussion`, `title`, `slug`, `idUser`, `primaryCategory`, `created_at`, `last_posted_at`, `isSticky`) VALUES
+(1, 'Bem-vindo ao novo Fórum de Discussão!', 'bem-vindo-ao-novo-forum-de-discussao', 1, 'test1', '2026-05-21 17:26:30', '2026-06-10 20:46:06', 1),
+(2, 'Como integrar Markdown com as páginas Wiki?', 'como-integrar-markdown-com-as-paginas-wiki', 1, 'test1', '2026-05-21 17:26:30', '2026-05-21 17:26:30', 0),
+(3, 'Suporte Geral e testes para a Categoria Grande', 'suporte-geral-e-testes-para-a-categoria-grande', 1, 'test2', '2026-05-21 17:26:30', '2026-05-21 17:26:30', 0);
 
 -- --------------------------------------------------------
 
@@ -258,7 +241,8 @@ INSERT INTO `forum_posts` (`idPost`, `idDiscussion`, `idUser`, `content`, `creat
 (1, 1, 1, 'Olá a todos! Este é o tópico inaugural do nosso fórum. Este espaço foi perfeitamente interligado com o sistema de permissões e utilizadores do ecossistema principal.', '2026-05-21 17:26:30', 'comment'),
 (2, 1, 1, 'Muito bom! Verifiquei agora que o carregamento assíncrono via Fetch API e o isolamento de componentes está a funcionar de forma ágil.', '2026-05-21 17:26:30', 'comment'),
 (3, 2, 1, 'Estava a analisar a tabela `page` e reparei que o conteúdo em formato Markdown (como o `markdownTest4`) possui quebras de linha reais. Qual parser recomendam usar no frontend?', '2026-05-21 17:26:30', 'comment'),
-(4, 3, 1, 'Tópico de teste criado exclusivamente para validar a listagem de categorias secundárias complexas (`secondaryBIg`). Tudo operacional!', '2026-05-21 17:26:30', 'comment');
+(4, 3, 1, 'Tópico de teste criado exclusivamente para validar a listagem de categorias secundárias complexas (`secondaryBIg`). Tudo operacional!', '2026-05-21 17:26:30', 'comment'),
+(5, 1, 1, 'undefined twin!!', '2026-06-10 20:46:06', 'comment');
 
 -- --------------------------------------------------------
 
@@ -282,7 +266,7 @@ CREATE TABLE `images-config` (
 --
 
 INSERT INTO `images-config` (`id`, `destination`, `maxFileSize`, `thumbType`, `thumbWidth`, `thumbHeight`, `numColls`, `cellspacing`) VALUES
-(1, '/tmp/upload/contents', 52428800, 'png', 80, 80, 3, 10);
+(1, '/tmp/upload/contents/', 52428800, 'png', 80, 80, 3, 10);
 
 -- --------------------------------------------------------
 
@@ -301,11 +285,22 @@ CREATE TABLE `images-details` (
   `thumbFileName` varchar(1024) COLLATE utf8_unicode_ci NOT NULL,
   `thumbMimeFileName` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `thumbTypeFileName` varchar(16) COLLATE utf8_unicode_ci NOT NULL,
-  `latitude` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
-  `longitude` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `title` varchar(32) COLLATE utf8_unicode_ci NOT NULL,
   `description` varchar(512) COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Dumping data for table `images-details`
+--
+
+INSERT INTO `images-details` (`id`, `fileName`, `mimeFileName`, `typeFileName`, `imageFileName`, `imageMimeFileName`, `imageTypeFileName`, `thumbFileName`, `thumbMimeFileName`, `thumbTypeFileName`, `title`, `description`) VALUES
+(1, '/tmp/upload/contents/images-config.sql', 'text', 'plain', '/tmp/upload/contents/default/Unknown-Large.jpg', 'image', 'jpeg', '/tmp/upload/contents/default/Unknown.jpg', 'image', 'jpeg', '9lana', 'No description available'),
+(2, '/tmp/upload/contents/9lana_1.gif', 'image', 'gif', '/tmp/upload/contents/9lana_1.gif', 'image', 'gif', '/tmp/upload/contents/thumbs/9lana_1.gif', 'image', 'gif', '9lanaReal', 'No description available'),
+(3, '/tmp/upload/contents/boothill bass.mp3', 'audio', 'mpeg', '/tmp/upload/contents/thumbs/default/Unknown-Large.jpg', 'image', 'jpeg', '/tmp/upload/contents/thumbs/default/Unknown.jpg', 'image', 'jpeg', 'testAudio', 'No description available'),
+(4, '/tmp/upload/contents/Unknown.jpg', 'image', 'jpeg', '/tmp/upload/contents/Unknown.jpg', 'image', 'jpeg', '/tmp/upload/contents/thumbs/Unknown.jpeg', 'image', 'jpeg', 'defaultAudioCover', 'No description available'),
+(5, '/tmp/upload/contents/boothill drums.mp3', 'audio', 'mpeg', '/tmp/upload/contents/thumbs/Unknown-Large.jpg', 'image', 'jpeg', '/tmp/upload/contents/thumbs/Unknown.jpg', 'image', 'jpeg', 'boothilDrums', 'No description available'),
+(6, '/tmp/upload/contents/dont stop the music.mp3', 'audio', 'mpeg', '/tmp/upload/contents/Unknown.jpg', 'image', 'jpeg', '/tmp/upload/contents/thumbs/Unknown.jpeg', 'image', 'jpeg', 'dontStop', 'No description available'),
+(7, '/tmp/upload/contents/lead your partner.mp3', 'audio', 'mpeg', '/tmp/upload/contents/Unknown.jpg', 'image', 'jpeg', '/tmp/upload/contents/thumbs/Unknown.jpeg', 'image', 'jpeg', 'leadYourPartner', 'No description available');
 
 -- --------------------------------------------------------
 
@@ -326,11 +321,13 @@ CREATE TABLE `page` (
 --
 
 INSERT INTO `page` (`primaryCategory`, `secondaryCategory`, `pageTitle`, `content`, `visibility`) VALUES
+('test2', 'secondaryBIg', 'bug', 'yea ig', 0),
+('test1', 'secondary1', 'fixed test', 'yea ig', 0),
 ('test1', 'secondary2', 'how to create a page', 'get good\r\n\r\n![9lana](getFileContents.php?id=2)', 3),
-('test1', 'secondary2', 'markdownTest', 'hello#bighello*italicizedhello****boldanditalic***', 0),
-('test1', 'secondary2', 'markdownTest2', 'hellon#bighellon*italicizedhello*n***boldanditalic***', 0),
+('test1', 'secondary2', 'markdownTest', 'hello#bighello*italicizedhello****', 1),
+('test1', 'secondary2', 'markdownTest2', 'hellon#bighellon*italicizedhello*n***boldanditalic***\r\n\r\n[test1](http://localhost/works/webapp/wiki/viewPage.php?pageTitle=markdownTest)', 0),
 ('test1', 'secondary2', 'markdownTest3', 'hello\r\n\r\n# big hello\r\n\r\n*italicized hello*\r\n\r\n***bold and italic***', 0),
-('test1', 'secondary2', 'markdownTest4', 'hello\r\n\r\n# big hello\r\n\r\n*italicized hello*\r\n\r\n***bold and italic***\r\n\r\n![9lana](getFileContents.php?id=2)\r\n\r\n:[song](getFileContents.php?id=7)\r\n\r\nyep luigi', 1);
+('test1', 'secondary2', 'markdownTest4', 'hello\r\n\r\n# big hello\r\n\r\n*italicized hello*\r\n\r\n***bold and italic***\r\n\r\n![9lana](getFileContents.php?id=2)\r\n\r\n:[song](getFileContents.php?id=7)\r\n\r\n\r\nyep luigi', 1);
 
 -- --------------------------------------------------------
 
@@ -361,7 +358,8 @@ CREATE TABLE `page-notifications` (
 --
 
 INSERT INTO `page-notifications` (`userId`, `pageTitle`) VALUES
-(1, 'how to create a page');
+(1, 'how to create a page'),
+(1, 'markdownTest');
 
 --
 -- Indexes for dumped tables
@@ -414,18 +412,12 @@ ALTER TABLE `email-accounts`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indexes for table `email-contacts`
---
-ALTER TABLE `email-contacts`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `forum_discussions`
 --
 ALTER TABLE `forum_discussions`
   ADD PRIMARY KEY (`idDiscussion`),
   ADD KEY `fk_discussion_user` (`idUser`),
-  ADD KEY `fk_discussion_categories` (`primaryCategory`,`secondaryCategory`);
+  ADD KEY `fk_discussion_categories` (`primaryCategory`);
 
 --
 -- Indexes for table `forum_likes`
@@ -485,7 +477,7 @@ ALTER TABLE `page-notifications`
 -- AUTO_INCREMENT for table `auth-basic`
 --
 ALTER TABLE `auth-basic`
-  MODIFY `idUser` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `idUser` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `email-accounts`
@@ -494,22 +486,16 @@ ALTER TABLE `email-accounts`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT for table `email-contacts`
---
-ALTER TABLE `email-contacts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
 -- AUTO_INCREMENT for table `forum_discussions`
 --
 ALTER TABLE `forum_discussions`
-  MODIFY `idDiscussion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `idDiscussion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `forum_posts`
 --
 ALTER TABLE `forum_posts`
-  MODIFY `idPost` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `idPost` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `images-config`
@@ -521,7 +507,7 @@ ALTER TABLE `images-config`
 -- AUTO_INCREMENT for table `images-details`
 --
 ALTER TABLE `images-details`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `page-changes`
@@ -562,7 +548,7 @@ ALTER TABLE `category-secondary`
 -- Constraints for table `forum_discussions`
 --
 ALTER TABLE `forum_discussions`
-  ADD CONSTRAINT `fk_discussion_categories` FOREIGN KEY (`primaryCategory`,`secondaryCategory`) REFERENCES `category-secondary` (`primaryCategory`, `secondaryCategory`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_discussion_categories` FOREIGN KEY (`primaryCategory`) REFERENCES `category-primary` (`primaryCategory`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_discussion_user` FOREIGN KEY (`idUser`) REFERENCES `auth-basic` (`idUser`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --

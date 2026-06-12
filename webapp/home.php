@@ -123,9 +123,7 @@ $shades = ['s1','s2','s3','s4','s5'];
   <?php endif; ?>
 
   <?php if ($isLoggedIn && (
-    authorizeUserByLevel($name, 'user') ||
-    authorizeUserByLevel($name, 'editor') ||
-    authorizeUserByLevel($name, 'organizer')
+    authorizeUserByLevel($name, 'user')
   )): ?>
   <div class="section-heading mt-4"><?php echo lang('actions'); ?></div>
   <div class="action-grid">

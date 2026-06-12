@@ -20,6 +20,7 @@ if (!isset($_SESSION)) {
 }
 $isLoggedIn = isset($_SESSION['id']);
 $name = $isLoggedIn ? $_SESSION['username'] : '';
+$isOrganizer = $isLoggedIn ? authorizeUserByLevel($name, 'organizer') : false;
 ?>
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -52,6 +53,28 @@ $name = $isLoggedIn ? $_SESSION['username'] : '';
 .file-info { padding: 0.65rem 0.75rem; }
 .file-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .file-id   { font-family: 'Outfit', sans-serif; font-size: 10px; color: var(--faint); margin-top: 1px; }
+
+/* Styling for the new download link button */
+.file-download-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #fff;
+  background-color: #0d6efd;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+.file-download-btn:hover {
+  background-color: #0b5ed7;
+  color: #fff;
+}
 </style>
 </head>
 <body>
@@ -83,6 +106,16 @@ $name = $isLoggedIn ? $_SESSION['username'] : '';
       <div class="file-info">
         <div class="file-name"><?php echo htmlspecialchars($fileTitle); ?></div>
         <div class="file-id">ID: <?php echo (int)$id; ?></div>
+        <?php if($isOrganizer): ?>
+          <a href="../wiki/getFileContents.php?id=<?php echo (int)$id; ?>" class="file-download-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download
+          </a>
+        <?php endif ?>
       </div>
     </div>
     <?php endwhile;

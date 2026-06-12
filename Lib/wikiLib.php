@@ -158,7 +158,6 @@ function getCategoryList($type, $filterPrimary = "") {
     if ($type === 'primary') {
         $query = "SELECT `primaryCategory` FROM `$dataBaseName`.`category-primary` ORDER BY `primaryCategory` ASC";
     } else {
-        // If a primary filter is provided, grab only subcategories belonging to it
         if (!empty($filterPrimary)) {
             $filterPrimary = mysqli_real_escape_string($GLOBALS['ligacao'], $filterPrimary);
             $query = "SELECT `secondaryCategory` FROM `$dataBaseName`.`category-secondary` WHERE `primaryCategory`='$filterPrimary' ORDER BY `secondaryCategory` ASC";
@@ -224,7 +223,6 @@ function checkUserRole($idUser, $roleName) {
     $dataBaseName = $GLOBALS['configDataBase']->db;
     mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
 
-    // Sanitize values to safely match your legacy query design patterns
     $idUser = (int)$idUser;
     $roleName = mysqli_real_escape_string($GLOBALS['ligacao'], $roleName);
 
@@ -257,7 +255,6 @@ function writeWikiPage($primaryCategory, $secondaryCategory, $pageTitle, $conten
     $pageTitle = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
     $content = mysqli_real_escape_string($GLOBALS['ligacao'], $content);
 
-    // Tries an insert first; updates content if the composite key already exists
     $query = "INSERT INTO `$dataBaseName`.`page` (`primaryCategory`, `secondaryCategory`, `pageTitle`, `content`) 
               VALUES ('$primaryCategory', '$secondaryCategory', '$pageTitle', '$content')
               ON DUPLICATE KEY UPDATE `content`='$content'";
@@ -267,8 +264,7 @@ function writeWikiPage($primaryCategory, $secondaryCategory, $pageTitle, $conten
     }
 
     dbDisconnect();
-    
-    // Send notifications if the database write succeeded
+
     if ($success) {
         $subscribers = getNotificationEmailsByCategory($secondaryCategory);
         if (!empty($subscribers)) {
@@ -293,7 +289,6 @@ function readWikiPage($pageTitle) {
     $dataBaseName = $GLOBALS['configDataBase']->db;
     mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
 
-    // Escape only the single key parameter
     $pageTitle = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
 
     $query = "SELECT `content` FROM `$dataBaseName`.`page` 
@@ -308,7 +303,6 @@ function readWikiPage($pageTitle) {
 
     dbDisconnect();
     
-    // Guard against null if the page doesn't exist
     return isset($pageData['content']) ? $pageData['content'] : null;
 }
 
@@ -366,7 +360,6 @@ function removeWikiPage($primaryCategory, $secondaryCategory, $pageTitle) {
 }
 
 
-// Helper function to get parent categories for a specific page title
 function getPageMetaData($pageTitle) {
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
@@ -389,7 +382,6 @@ function getPageMetaData($pageTitle) {
     return $meta;
 }
 
-// Helper function to query page titles under a specific secondary category composite key
 function getPagesList($primaryCategory, $secondaryCategory) {
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
@@ -398,7 +390,6 @@ function getPagesList($primaryCategory, $secondaryCategory) {
     $primaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $primaryCategory);
     $secondaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
 
-    // Added roleLevelVisibility to the SELECT statement
     $query = "SELECT `pageTitle`, `visibility` FROM `$dataBaseName`.`page` 
               WHERE `primaryCategory`='$primaryCategory' 
               AND `secondaryCategory`='$secondaryCategory' 
@@ -409,9 +400,8 @@ function getPagesList($primaryCategory, $secondaryCategory) {
 
     if ($result != false) {
         while ($row = mysqli_fetch_assoc($result)) {
-            // Stores both the title and the visibility level as an associative array element
             $pages[] = [
-                'pageTitle'           => $row['pageTitle'],
+                'pageTitle' => $row['pageTitle'],
                 'visibility' => (int)$row['visibility']
             ];
         }
@@ -431,7 +421,6 @@ function authorizeUserByLevel($username, $requiredRoleName) {
     $username = mysqli_real_escape_string($GLOBALS['ligacao'], $username);
     $requiredRoleName = mysqli_real_escape_string($GLOBALS['ligacao'], $requiredRoleName);
 
-    // 1. Get the level of the required role from the DB
     $reqQuery = "SELECT `roleLevel` FROM `$dataBaseName`.`auth-roles` WHERE `friendlyName` = '$requiredRoleName' LIMIT 1";
     $reqResult = mysqli_query($GLOBALS['ligacao'], $reqQuery);
     
@@ -444,7 +433,6 @@ function authorizeUserByLevel($username, $requiredRoleName) {
     $requiredLevel = (int)$reqRow['roleLevel'];
     mysqli_free_result($reqResult);
 
-    // 2 & 3. Get the user's role and JOIN to resolve their actual level from the DB
     $userQuery = "SELECT r.`roleLevel` 
                   FROM `$dataBaseName`.`auth-basic` u
                   JOIN `$dataBaseName`.`auth-roles` r ON u.`idRole` = r.`idRole`
@@ -453,7 +441,7 @@ function authorizeUserByLevel($username, $requiredRoleName) {
                   
     $userResult = mysqli_query($GLOBALS['ligacao'], $userQuery);
     
-    $userLevel = 0; // Baseline fallback level (unauthenticated/lowest possible)
+    $userLevel = 0; 
     if ($userResult && mysqli_num_rows($userResult) > 0) {
         $userRow = mysqli_fetch_assoc($userResult);
         $userLevel = (int)$userRow['roleLevel'];
@@ -462,7 +450,6 @@ function authorizeUserByLevel($username, $requiredRoleName) {
 
     dbDisconnect();
 
-    // Check if the user's level meets or exceeds the required level
     return ($userLevel >= $requiredLevel);
 }
 function getUserRoleInfo($username) {
@@ -494,20 +481,17 @@ function getUserRoleInfo($username) {
 }
 
 function processPageChange($username, $pageTitle, $newContent, $visibility) {
-    // 1. Check role authorization level using your existing function
     $isEditorOrHigher = authorizeUserByLevel($username, 'editor');
 
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
     mysqli_select_db($GLOBALS['ligacao'], $dataBaseName);
 
-    // Sanitize values for queries
     $username   = mysqli_real_escape_string($GLOBALS['ligacao'], $username);
     $pageTitle  = mysqli_real_escape_string($GLOBALS['ligacao'], $pageTitle);
     $newContent = mysqli_real_escape_string($GLOBALS['ligacao'], $newContent);
     $newVisibility = mysqli_real_escape_string($GLOBALS['ligacao'], $visibility);
 
-    // 2. Fetch user metadata needed for contributions score and fallback tracking
     $userQuery = "SELECT `idUser`, `contributions` 
                   FROM `$dataBaseName`.`auth-basic` 
                   WHERE `name` = '$username' 
@@ -518,7 +502,7 @@ function processPageChange($username, $pageTitle, $newContent, $visibility) {
     if (!$userResult || mysqli_num_rows($userResult) === 0) {
         if ($userResult) mysqli_free_result($userResult);
         dbDisconnect();
-        return false; // User not found
+        return false;
     }
 
     $userData      = mysqli_fetch_assoc($userResult);
@@ -529,9 +513,8 @@ function processPageChange($username, $pageTitle, $newContent, $visibility) {
     $hasHighContributions = ($contributions > 3);
     $isDirectApply = ($isEditorOrHigher || $hasHighContributions);
 
-    // 3. Routing decision logic
     if ($isDirectApply) {
-        // Direct Apply: Update live production document text immediately
+        // update live document text immediately
         $updateQuery = "UPDATE `$dataBaseName`.`page` 
                         SET `content` = '$newContent', `visibility` = '$newVisibility' 
                         WHERE `pageTitle` = '$pageTitle'";
@@ -541,13 +524,13 @@ function processPageChange($username, $pageTitle, $newContent, $visibility) {
             mysqli_query($GLOBALS['ligacao'], "UPDATE `$dataBaseName`.`auth-basic` SET `contributions` = `contributions` + 1 WHERE `idUser` = $idUser");
         }
     } else {
-        // Sandbox Review: Write proposal safely into queue moderation backlog log files
+        // write proposal safely into queue moderation backlog log files
         $insertQuery = "INSERT INTO `$dataBaseName`.`page-changes` (`pageTitle`, `editorId`, `newContent`) 
                         VALUES ('$pageTitle', $idUser, '$newContent')";
         $success = mysqli_query($GLOBALS['ligacao'], $insertQuery);
     }
 
-    // 4. Send Notifications if the direct update was successful
+    //notifications
     if ($success && $isDirectApply) {
 
         $pageSubscribers = getNotificationEmailsByPage($pageTitle);
@@ -656,7 +639,6 @@ function getNotificationEmailsByCategory($secondaryCategory) {
     $secondaryCategory = mysqli_real_escape_string($GLOBALS['ligacao'], $secondaryCategory);
     $emails = [];
 
-    // Fetches subscribers based on the exact secondaryCategory matching your configuration
     $query = "SELECT u.`email` 
               FROM `$dataBaseName`.`category-notifications` n
               JOIN `$dataBaseName`.`auth-basic` u ON n.`userId` = u.`idUser`
@@ -784,7 +766,6 @@ function getAvailableRolesUpToUser($username) {
     $userMaxLevel = (int)$userRow['roleLevel'];
     mysqli_free_result($userResult);
 
-    // 3. Fetch roleLevel and friendlyName columns from auth-roles up to the user's level (inclusive)
     $rolesQuery = "SELECT `roleLevel`, `friendlyName`, `idRole` 
                    FROM `$dataBaseName`.`auth-roles` 
                    WHERE `roleLevel` <= $userMaxLevel 
@@ -903,20 +884,15 @@ function moderateProposal($changeId, $action) {
         $newContent = mysqli_real_escape_string($GLOBALS['ligacao'], $proposal['newContent']);
 
         if ($action === 'accept') {
-            // Update the live production page content
             $updatePage = "UPDATE `$dataBaseName`.`page` SET `content` = '$newContent' WHERE `pageTitle` = '$pageTitle'";
             if (mysqli_query($GLOBALS['ligacao'], $updatePage)) {
-                // Reward the contributor with a point
                 notifyPageChange($pageTitle, $editorName);
                 mysqli_query($GLOBALS['ligacao'], "UPDATE `$dataBaseName`.`auth-basic` SET `contributions` = `contributions` + 1 WHERE `idUser` = $editorId");
                 $success = true;
             }
         } else {
-            // Rejection requires no production updates
             $success = true;
         }
-
-        // 2. Remove from moderation log regardless of action outcome
         if ($success) {
             mysqli_query($GLOBALS['ligacao'], "DELETE FROM `$dataBaseName`.`page-changes` WHERE `changeId` = $changeId");
         }
@@ -950,12 +926,6 @@ function notifyPageChange($pageTitle, $usernameResponsible){
 }
 
 
-/**
- * Lê todas as discussões ativas, globalmente ou filtradas por categorias. digo
- * @param string|null $primaryCategory Categoria primária a filtrar (opcional)
- * @param string|null $secondaryCategory Categoria secundária a filtrar (opcional)
- * @return array Lista associativa de discussões
- */
 function getForumDiscussions($primaryCategory = null, $secondaryCategory = null) {
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
@@ -1002,12 +972,6 @@ function getForumDiscussions($primaryCategory = null, $secondaryCategory = null)
     return $discussions;
 }
 
-/**
- * Lê todos os posts cronológicos de uma discussão e verifica se o utilizador atual já fez Like.
- * @param int $idDiscussion ID do tópico a abrir
- * @param int $currentUserId ID do utilizador ativo (para avaliar os gostos)
- * @return array Lista de posts do tópico
- */
 function getForumPosts($idDiscussion, $currentUserId = 0) {
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
@@ -1040,10 +1004,6 @@ function getForumPosts($idDiscussion, $currentUserId = 0) {
     return $posts;
 }
 
-/**
- * Cria uma nova discussão (Tópico). Abre também o primeiro Post correspondente.
- * @return int|bool Retorna o ID da nova discussão criada ou falso em caso de erro.
- */
 function createForumDiscussion($idUser, $title, $content, $primaryCategory, $secondaryCategory = null) {
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
@@ -1060,14 +1020,12 @@ function createForumDiscussion($idUser, $title, $content, $primaryCategory, $sec
 
     mysqli_begin_transaction($GLOBALS['ligacao']);
 
-    // 1. Inserir Discussão
     $queryDisc = "INSERT INTO `$dataBaseName`.`forum_discussions` (`title`, `slug`, `idUser`, `primaryCategory`, `secondaryCategory`) 
                   VALUES ('$titleSafe', '$slugSafe', $idUserSafe, '$primarySafe', $secondarySafe)";
     
     if (mysqli_query($GLOBALS['ligacao'], $queryDisc)) {
         $idDiscussion = mysqli_insert_id($GLOBALS['ligacao']);
 
-        // 2. Inserir o primeiro Post associado a essa discussão
         $queryPost = "INSERT INTO `$dataBaseName`.`forum_posts` (`idDiscussion`, `idUser`, `content`) 
                       VALUES ($idDiscussion, $idUserSafe, '$contentSafe')";
         
@@ -1083,9 +1041,6 @@ function createForumDiscussion($idUser, $title, $content, $primaryCategory, $sec
     return false;
 }
 
-/**
- * Adiciona uma resposta a uma discussão existente e dá o "bump" de tempo ao tópico pai.
- */
 function createForumPost($idUser, $idDiscussion, $content) {
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
@@ -1101,7 +1056,6 @@ function createForumPost($idUser, $idDiscussion, $content) {
                   VALUES ($idDiscSafe, $idUserSafe, '$contentSafe')";
 
     if (mysqli_query($GLOBALS['ligacao'], $queryPost)) {
-        // Atualizar o last_posted_at do tópico para o empurrar para cima na listagem
         $queryBump = "UPDATE `$dataBaseName`.`forum_discussions` 
                       SET `last_posted_at` = NOW() 
                       WHERE `idDiscussion` = $idDiscSafe";
@@ -1117,10 +1071,7 @@ function createForumPost($idUser, $idDiscussion, $content) {
     return false;
 }
 
-/**
- * Liga ou desliga o "Gosto" de um utilizador num post específico.
- * @return string 'liked' ou 'unliked' ou false em caso de falha.
- */
+
 function toggleForumLike($idUser, $idPost) {
     dbConnect(ConfigFile);
     $dataBaseName = $GLOBALS['configDataBase']->db;
@@ -1130,18 +1081,15 @@ function toggleForumLike($idUser, $idPost) {
     $idPostSafe = (int)$idPost;
     $action = false;
 
-    // Verificar se já tem Gosto
     $queryCheck = "SELECT 1 FROM `$dataBaseName`.`forum_likes` WHERE `idPost` = $idPostSafe AND `idUser` = $idUserSafe";
     $resultCheck = mysqli_query($GLOBALS['ligacao'], $queryCheck);
 
     if ($resultCheck && mysqli_num_rows($resultCheck) > 0) {
-        // Remover Gosto
         $queryDel = "DELETE FROM `$dataBaseName`.`forum_likes` WHERE `idPost` = $idPostSafe AND `idUser` = $idUserSafe";
         if (mysqli_query($GLOBALS['ligacao'], $queryDel)) {
             $action = 'unliked';
         }
     } else {
-        // Inserir Gosto
         $queryIns = "INSERT INTO `$dataBaseName`.`forum_likes` (`idPost`, `idUser`) VALUES ($idPostSafe, $idUserSafe)";
         if (mysqli_query($GLOBALS['ligacao'], $queryIns)) {
             $action = 'liked';
@@ -1153,9 +1101,7 @@ function toggleForumLike($idUser, $idPost) {
     return $action;
 }
 
-/**
- * Utilitário partilhado para resolver o ID de um utilizador ativo com base no HTTP Auth
- */
+
 function getActiveUserIdFromAuth() {
     $username = $_SERVER['PHP_AUTH_USER'] ?? null;
     if (!$username) return 0;
