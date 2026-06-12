@@ -126,10 +126,10 @@ $primaryCategoriesData = getCategoryList('primary');
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             <?php echo lang('create_secondary_btn'); ?>
           </button>
-          <button type="button" class="hbtn" onclick="history.back()">
+          <a href="viewPage.php" class="hbtn" style="text-decoration:none">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
             <?php echo lang('go_back'); ?>
-          </button>
+          </a>
         </div>
       </form>
     </div>

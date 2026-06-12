@@ -101,7 +101,7 @@ $error = filter_input($_INPUT_METHOD, 'error', FILTER_UNSAFE_RAW, $flags);
         <?php echo lang('sign_in'); ?>
       </a>
       <span style="color:var(--border2)">·</span>
-      <a href="javascript:history.back()" style="font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s"
+      <a href="formLogin.php" style="font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s"
          onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">
         <?php echo lang('go_back'); ?>
       </a>
