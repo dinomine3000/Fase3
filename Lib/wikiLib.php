@@ -266,6 +266,8 @@ function writeWikiPage($primaryCategory, $secondaryCategory, $pageTitle, $conten
         $success = true;
     }
 
+    dbDisconnect();
+    
     // Send notifications if the database write succeeded
     if ($success) {
         $subscribers = getNotificationEmailsByCategory($secondaryCategory);
@@ -282,9 +284,7 @@ function writeWikiPage($primaryCategory, $secondaryCategory, $pageTitle, $conten
 
             sendNotificationEmails($subscribers, $Subject, $Message);
         }
-    }
-
-    dbDisconnect();
+    } 
     return $success;
 }
 function readWikiPage($pageTitle) {
